@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> 
     <style>
         :root {
             --md-sys-color-primary: #bdb3ff;
@@ -107,6 +108,16 @@
             <p class="text-lg mt-2" style="color: var(--md-sys-color-on-surface-variant);">Karakterleri, Füzyonları ve Gizli Sırları Yönet</p>
         </header>
 
+        <div class="bg-[var(--md-sys-color-surface-container)] rounded-2xl p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">Yönetici Girişi</h2>
+            <div id="login-form-container">
+                <input type="email" id="admin-email" placeholder="E-posta" class="form-input mb-3">
+                <input type="password" id="admin-password" placeholder="Şifre" class="form-input mb-3">
+                <button id="login-btn" class="p-3 bg-green-600 rounded hover:bg-green-500 font-bold w-full">Giriş Yap</button>
+                <p id="login-status" class="mt-3 text-center text-red-400"></p>
+            </div>
+            <p id="logged-in-status" class="mt-3 text-center text-green-400 hidden">Yönetici olarak giriş yapıldı. <button id="logout-btn" class="underline text-blue-300">Çıkış Yap</button></p>
+        </div>
         <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center">
             <input type="text" id="search-input" placeholder="Karakter ara..." class="form-input flex-grow">
             <button id="toggle-form-btn" class="p-3 bg-gray-700 rounded hover:bg-gray-600 font-bold w-full sm:w-auto">
@@ -172,6 +183,7 @@
   messagingSenderId: "486669559067",
   appId: "1:486669559067:web:20c76a78a41d9bc0bbdfbe"
 };
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -180,8 +192,8 @@
         let editingItemId = null;
         let editingItemType = null;
         const dom = {
-            addEditFormContainer: document.getElementById('add-edit-form-container'), // Yeni eklendi
-            toggleFormBtn: document.getElementById('toggle-form-btn'), // Yeni eklendi
+            addEditFormContainer: document.getElementById('add-edit-form-container'),
+            toggleFormBtn: document.getElementById('toggle-form-btn'),
             addEditForm: document.getElementById('add-edit-form'),
             itemTypeSelect: document.getElementById('item-type-select'),
             characterFields: document.getElementById('character-fields'),
@@ -193,8 +205,16 @@
             adminGrid: document.getElementById('admin-grid'),
             searchInput: document.getElementById('search-input'),
             noResults: document.getElementById('no-results'),
-            enlargedImageOverlay: document.getElementById('enlarged-image-overlay'), // Yeni eklendi
-            enlargedImage: document.getElementById('enlarged-image'), // Yeni eklendi
+            enlargedImageOverlay: document.getElementById('enlarged-image-overlay'),
+            enlargedImage: document.getElementById('enlarged-image'),
+
+            // Yeni eklenen DOM elementleri (Giriş/Çıkış için)
+            adminEmailInput: document.getElementById('admin-email'),
+            adminPasswordInput: document.getElementById('admin-password'),
+            loginBtn: document.getElementById('login-btn'),
+            loginStatus: document.getElementById('login-status'),
+            loggedInStatus: document.getElementById('logged-in-status'),
+            logoutBtn: document.getElementById('logout-btn'),
         };
 
         // Mevcut kodunuzdaki gibi yardımcı fonksiyonlar
@@ -383,10 +403,15 @@
             }
 
             try {
-                await db.collection(collectionName).doc(id).set(data, { merge: true });
-                alert(`Kayıt başarıyla ${isEditing ? 'güncellendi' : 'kaydedildi'}!`);
-                await fetchItems();
-                resetForm();
+                // Sadece giriş yapmış kullanıcılar yazma işlemi yapabilir
+                if (firebase.auth().currentUser) { 
+                    await db.collection(collectionName).doc(id).set(data, { merge: true });
+                    alert(`Kayıt başarıyla ${isEditing ? 'güncellendi' : 'kaydedildi'}!`);
+                    await fetchItems();
+                    resetForm();
+                } else {
+                    alert("Bu işlemi yapmak için yönetici olarak giriş yapmalısınız.");
+                }
             } catch (error) {
                 console.error("Kayıt sırasında hata:", error);
                 alert("Bir hata oluştu. Lütfen konsolu (F12) kontrol edin.");
@@ -405,9 +430,14 @@
 
             if (confirm(`'${item.name}' adlı kaydı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
                 try {
-                    await db.collection(collectionName).doc(itemId).delete();
-                    alert("Kayıt başarıyla silindi.");
-                    await fetchItems();
+                    // Sadece giriş yapmış kullanıcılar silme işlemi yapabilir
+                    if (firebase.auth().currentUser) {
+                        await db.collection(collectionName).doc(itemId).delete();
+                        alert("Kayıt başarıyla silindi.");
+                        await fetchItems();
+                    } else {
+                        alert("Bu işlemi yapmak için yönetici olarak giriş yapmalısınız.");
+                    }
                 } catch (error) {
                     console.error("Silme işlemi sırasında hata:", error);
                     alert("Bir hata oluştu. Lütfen konsolu (F12) kontrol edin.");
@@ -442,9 +472,42 @@
             dom.enlargedImageOverlay.classList.add('hidden');
         }
 
+        // Yönetici arayüz elementlerinin etkinliğini günceller
+        function updateAuthUI(user) {
+            const loginFormContainer = document.getElementById('login-form-container'); 
+            if (user) {
+                // Kullanıcı giriş yaptıysa
+                loginFormContainer.classList.add('hidden'); // Giriş formunu gizle
+                dom.loggedInStatus.classList.remove('hidden'); // "Giriş yapıldı" mesajını göster
+
+                // Ekleme/düzenleme formunu ve butonlarını etkinleştir
+                dom.addEditFormContainer.style.pointerEvents = 'auto'; // Form alanlarını etkileşime aç
+                dom.addEditForm.style.opacity = '1'; // Normal görünümüne getir
+                dom.toggleFormBtn.disabled = false; // Formu gösterme/gizleme butonunu etkinleştir
+                // Tüm düzenleme ve silme butonlarını etkinleştir
+                dom.adminGrid.querySelectorAll('.edit-button, .delete-button').forEach(btn => btn.disabled = false);
+
+            } else {
+                // Kullanıcı çıkış yaptıysa veya giriş yapmadıysa
+                loginFormContainer.classList.remove('hidden'); // Giriş formunu göster
+                dom.loggedInStatus.classList.add('hidden'); // "Giriş yapıldı" mesajını gizle
+                dom.loginStatus.textContent = ''; // Mesajı temizle
+                dom.adminEmailInput.value = ''; // E-posta alanını temizle
+                dom.adminPasswordInput.value = ''; // Şifre alanını temizle
+
+                // Ekleme/düzenleme formunu ve butonlarını devre dışı bırak
+                dom.addEditFormContainer.style.pointerEvents = 'none'; // Form alanlarını etkileşime kapat
+                dom.addEditForm.style.opacity = '0.5'; // Gri tonlu yap
+                dom.toggleFormBtn.disabled = true; // Form gösterme/gizleme butonunu devre dışı bırak
+                // Tüm düzenleme ve silme butonlarını devre dışı bırak
+                dom.adminGrid.querySelectorAll('.edit-button, .delete-button').forEach(btn => btn.disabled = true);
+            }
+        }
+
         // Uygulama başlatma
         document.addEventListener('DOMContentLoaded', () => {
-            fetchItems();
+            fetchItems(); // Sayfa yüklendiğinde verileri çek
+
             dom.itemTypeSelect.addEventListener('change', toggleFormFields);
             dom.addEditForm.addEventListener('submit', handleFormSubmit);
             dom.cancelButton.addEventListener('click', resetForm);
@@ -460,9 +523,46 @@
                 }
             });
 
-            // Başlangıçta formu gizle (isteğe bağlı, kaldırabilirsiniz)
+            // Başlangıçta formu gizle
             dom.addEditFormContainer.classList.add('hidden');
             dom.toggleFormBtn.textContent = 'Yeni Kayıt Ekle ▼';
+
+            // Kimlik Doğrulama İşlevselliği
+            dom.loginBtn.addEventListener('click', async () => {
+                const email = dom.adminEmailInput.value;
+                const password = dom.adminPasswordInput.value;
+                dom.loginStatus.textContent = ''; // Hata mesajını temizle
+
+                try {
+                    await firebase.auth().signInWithEmailAndPassword(email, password);
+                    dom.loginStatus.textContent = 'Giriş başarılı!';
+                    dom.loginStatus.style.color = 'lightgreen';
+                    updateAuthUI(firebase.auth().currentUser); // UI'ı güncelle
+                } catch (error) {
+                    dom.loginStatus.textContent = `Giriş Hatası: ${error.message}`;
+                    dom.loginStatus.style.color = 'red';
+                    console.error("Giriş hatası:", error);
+                }
+            });
+
+            dom.logoutBtn.addEventListener('click', async () => {
+                try {
+                    await firebase.auth().signOut();
+                    dom.loginStatus.textContent = 'Çıkış yapıldı.';
+                    dom.loginStatus.style.color = 'lightgreen';
+                    updateAuthUI(null); // UI'ı güncelle
+                } catch (error) {
+                    dom.loginStatus.textContent = `Çıkış Hatası: ${error.message}`;
+                    dom.loginStatus.style.color = 'red';
+                    console.error("Çıkış hatası:", error);
+                }
+            });
+
+            // Kullanıcı oturum durumunu izle
+            // Sayfa yüklendiğinde veya kullanıcı giriş/çıkış yaptığında otomatik çalışır.
+            firebase.auth().onAuthStateChanged((user) => {
+                updateAuthUI(user);
+            });
         });
     </script>
 </body>
