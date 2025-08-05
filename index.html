@@ -255,7 +255,7 @@
                 const isFusion = item.isFusion;
                 const isEasterEgg = item.originalCharacterId;
                 const starCount = isFusion ? 4 : (isEasterEgg ? 1 : (item.star || 1));
-                const starIcon = isEasterEgg ? 'favorite' : 'star';
+                const starIcon = isEasterEgg ? 'auto_awesome favorite auto_awesome' : 'star';
                 const starHtml = getStarEmojis(isFusion || isEasterEgg, starCount, starIcon);
                 
                 const nameClass = isFusion || isEasterEgg ? 'font-fantastical-fusion' : '';
