@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yönetim Paneli</title>
+    <title>Yönetim Paneli - Gelişmiş Görünüm</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,178 +11,109 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <style>
         :root {
-            --md-sys-color-primary: #bdb3ff;
+            --md-sys-color-primary-rgb: 189, 179, 255;
+            --md-sys-color-primary: rgb(var(--md-sys-color-primary-rgb));
             --md-sys-color-on-primary: #2d235c;
             --md-sys-color-primary-container: #443a74;
             --md-sys-color-on-primary-container: #e6deff;
             --md-sys-color-background: #131318;
             --md-sys-color-on-background: #e5e1e6;
+            --md-sys-color-surface: #1a191f;
             --md-sys-color-surface-container: #201f25;
             --md-sys-color-surface-container-high: #2a2830;
             --md-sys-color-on-surface: #e5e1e6;
             --md-sys-color-on-surface-variant: #c8c4d0;
             --md-sys-color-outline-variant: #48454e;
+            --md-sys-color-success-rgb: 102, 187, 106;
+            --md-sys-color-success: rgb(var(--md-sys-color-success-rgb));
+            --md-sys-color-on-success: #ffffff;
+            --md-sys-color-danger-rgb: 239, 83, 80;
+            --md-sys-color-danger: rgb(var(--md-sys-color-danger-rgb));
+            --md-sys-color-on-danger: #ffffff;
         }
-        body {
-            font-family: 'Manrope', sans-serif;
-            background-color: var(--md-sys-color-background);
-            color: var(--md-sys-color-on-background);
-        }
-        .form-input {
-            background-color: var(--md-sys-color-surface-container-high);
-            border: 1px solid var(--md-sys-color-outline-variant);
-            color: var(--md-sys-color-on-surface);
-            border-radius: 8px;
-            padding: 10px;
-            width: 100%;
-            transition: border-color 0.2s ease;
-        }
-        .form-input:focus {
-            border-color: var(--md-sys-color-primary);
-            outline: none;
-        }
-        .item-card {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem;
-            border-radius: 12px;
-            background-color: var(--md-sys-color-surface-container);
-            transition: all 0.2s ease-in-out;
-            border: 1px solid var(--md-sys-color-outline-variant);
-        }
-        .item-card:hover {
-            background-color: var(--md-sys-color-surface-container-high);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        .icon-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background-color: transparent;
-            color: var(--md-sys-color-on-surface-variant);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .icon-button:hover {
-            background-color: rgba(var(--md-sys-color-primary), 0.08);
-        }
-        .ripple-effect { position: relative; overflow: hidden; }
-        .ripple { position: absolute; border-radius: 50%; background-color: rgba(255, 255, 255, 0.3); transform: scale(0); animation: ripple-animation 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); pointer-events: none; }
-        @keyframes ripple-animation { to { transform: scale(4); opacity: 0; } }
-
-        /* Yeni eklenen CSS */
-        .enlarged-image-container { 
-            z-index: 1100; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background-color: rgba(0,0,0,0.85);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-        }
-        .enlarged-image { 
-            max-width: 90%; 
-            max-height: 90%; 
-            object-fit: contain;
-            border-radius: 8px;
-        }
+        body { font-family: 'Manrope', sans-serif; background-color: var(--md-sys-color-background); color: var(--md-sys-color-on-background); }
+        .form-input { background-color: var(--md-sys-color-surface-container-high); border: 1px solid var(--md-sys-color-outline-variant); color: var(--md-sys-color-on-surface); border-radius: 8px; padding: 12px; width: 100%; transition: all 0.2s ease; }
+        .form-input:focus { border-color: var(--md-sys-color-primary); box-shadow: 0 0 0 3px rgba(var(--md-sys-color-primary-rgb), 0.2); outline: none; }
+        .item-card { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 16px; background-color: var(--md-sys-color-surface-container); transition: all 0.2s ease-in-out; border: 1px solid var(--md-sys-color-outline-variant); }
+        .item-card:hover { transform: translateY(-4px); background-color: var(--md-sys-color-surface-container-high); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-weight: 700; text-decoration: none; border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-primary { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+        .btn-success { background-color: var(--md-sys-color-success); color: var(--md-sys-color-on-success); }
+        .btn-secondary { background-color: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface-variant); border: 1px solid var(--md-sys-color-outline-variant); }
+        .btn-secondary:hover { border-color: var(--md-sys-color-primary); color: var(--md-sys-color-primary); background-color: rgba(var(--md-sys-color-primary-rgb), 0.08); transform: translateY(0); box-shadow: none; }
+        .btn-danger { background-color: var(--md-sys-color-danger); color: var(--md-sys-color-on-danger); }
+        .icon-button { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background-color: transparent; color: var(--md-sys-color-on-surface-variant); cursor: pointer; transition: all 0.2s; }
+        .icon-button:hover.edit-button { background-color: rgba(var(--md-sys-color-primary-rgb), 0.1); color: var(--md-sys-color-primary); }
+        .icon-button:hover.delete-button { background-color: rgba(var(--md-sys-color-danger-rgb), 0.1); color: var(--md-sys-color-danger); }
+        .modal-backdrop { z-index: 1000; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+        .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
+        .modal-content { background-color: var(--md-sys-color-surface-container); border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-backdrop.visible .modal-content { transform: scale(1); }
+        .enlarged-image-container { z-index: 1100; position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.85); backdrop-filter: blur(5px); }
+        .enlarged-image { max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px; }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
 
     <div id="app" class="max-w-screen-xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-extrabold" style="color: var(--md-sys-color-primary);">Yönetim Paneli</h1>
-            <p class="text-lg mt-2" style="color: var(--md-sys-color-on-surface-variant);">Karakterleri, Füzyonları ve Gizli Sırları Yönet</p>
-        </header>
-
-        <div class="bg-[var(--md-sys-color-surface-container)] rounded-2xl p-6 mb-8">
-            <h2 class="text-2xl font-bold mb-4">Yönetici Girişi</h2>
-            <div id="login-form-container">
-                <input type="email" id="admin-email" placeholder="E-posta" class="form-input mb-3">
-                <input type="password" id="admin-password" placeholder="Şifre" class="form-input mb-3">
-                <button id="login-btn" class="p-3 bg-green-600 rounded hover:bg-green-500 font-bold w-full">Giriş Yap</button>
-                <p id="login-status" class="mt-3 text-center text-red-400"></p>
+        <header class="flex justify-between items-center mb-8 pb-4 border-b" style="border-color: var(--md-sys-color-outline-variant);">
+            <div>
+                <h1 class="text-4xl md:text-5xl font-extrabold" style="color: var(--md-sys-color-primary);">Yönetim Paneli</h1>
+                <p class="text-lg mt-2" style="color: var(--md-sys-color-on-surface-variant);">Karakterleri, Füzyonları ve Gizli Sırları Yönet</p>
             </div>
-            <p id="logged-in-status" class="mt-3 text-center text-green-400 hidden">Yönetici olarak giriş yapıldı. <button id="logout-btn" class="underline text-blue-300">Çıkış Yap</button></p>
-        </div>
+            <div id="auth-button-container">
+                <button id="auth-action-btn" class="btn btn-secondary">
+                    <span id="auth-action-icon" class="material-symbols-outlined">login</span>
+                    <span id="auth-action-text">Giriş Yap</span>
+                </button>
+            </div>
+        </header>
+        
         <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center">
-            <input type="text" id="search-input" placeholder="Karakter ara..." class="form-input flex-grow">
-            <button id="toggle-form-btn" class="p-3 bg-gray-700 rounded hover:bg-gray-600 font-bold w-full sm:w-auto">
-                Yeni Kayıt Ekle ▼
-            </button>
+            <input type="text" id="search-input" placeholder="Kayıtlar içinde ara..." class="form-input flex-grow">
+            <div class="flex gap-2 w-full sm:w-auto">
+                <button id="toggle-form-btn" class="btn btn-primary w-full sm:w-auto">
+                    <span id="toggle-form-icon" class="material-symbols-outlined">add</span>
+                    <span id="toggle-form-text">Yeni Kayıt</span>
+                </button>
+                <a href="https://bigfalkon.github.io" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                    <span class="material-symbols-outlined">visibility</span>
+                    <span>Galeriye Git</span>
+                </a>
+            </div>
         </div>
         
         <div id="add-edit-form-container" class="bg-[var(--md-sys-color-surface-container)] rounded-2xl p-6 mb-8">
             <h2 id="form-title" class="text-2xl font-bold mb-4">Yeni Kayıt Ekle</h2>
             <form id="add-edit-form" class="flex flex-col gap-3">
-                <select id="item-type-select" class="form-input mb-2">
-                    <option value="character">Normal Karakter</option>
-                    <option value="fusion">Füzyon</option>
-                    <option value="easterEgg">Easter Egg</option>
-                </select>
-                
+                <select id="item-type-select" class="form-input mb-2"><option value="character">Normal Karakter</option><option value="fusion">Füzyon</option><option value="easterEgg">Easter Egg</option></select>
                 <input required type="text" name="id" placeholder="Kayıt ID (benzersiz olmalı)" class="form-input">
                 <input required type="text" name="name" placeholder="İsim" class="form-input">
-                
-                <div id="main-image-upload-container">
-                    <label class="block text-sm font-medium mb-1">Ana Resim</label>
-                    <input type="file" name="imageFile" class="form-input">
-                </div>
-
+                <div id="main-image-upload-container"><label class="block text-sm font-medium mb-1">Ana Resim</label><input type="file" name="imageFile" class="form-input"></div>
                 <div id="character-fields" class="flex flex-col gap-3">
-                    <div id="evo-2-upload-container">
-                        <label class="block text-sm font-medium mb-1">2★ Resim</label>
-                        <input type="file" name="evolutions_1_file" class="form-input">
-                    </div>
-                    <div id="evo-3-upload-container">
-                        <label class="block text-sm font-medium mb-1">3★ Resim</label>
-                        <input type="file" name="evolutions_2_file" class="form-input">
-                    </div>
+                    <div><label class="block text-sm font-medium mb-1">2★ Resim</label><input type="file" name="evolutions_1_file" class="form-input"></div>
+                    <div><label class="block text-sm font-medium mb-1">3★ Resim</label><input type="file" name="evolutions_2_file" class="form-input"></div>
                 </div>
-
-                <div id="fusion-fields" class="hidden flex-col gap-3">
-                    <input type="text" name="fusionPartners_0" placeholder="Partner 1 ID" class="form-input">
-                    <input type="text" name="fusionPartners_1" placeholder="Partner 2 ID" class="form-input">
-                </div>
-
-                <div id="easter-egg-fields" class="hidden flex-col gap-3">
-                    <input type="text" name="originalCharacterId" placeholder="Orijinal Karakter ID" class="form-input">
-                </div>
-                
-                <div class="flex gap-2 mt-4">
-                    <button type="submit" id="save-button" class="flex-grow p-3 bg-blue-600 rounded hover:bg-blue-500 font-bold">Kaydet</button>
-                    <button type="button" id="cancel-button" class="hidden flex-grow p-3 bg-gray-600 rounded hover:bg-gray-500 font-bold">İptal</button>
-                </div>
+                <div id="fusion-fields" class="hidden flex-col gap-3"><input type="text" name="fusionPartners_0" placeholder="Partner 1 ID" class="form-input"><input type="text" name="fusionPartners_1" placeholder="Partner 2 ID" class="form-input"></div>
+                <div id="easter-egg-fields" class="hidden flex-col gap-3"><input type="text" name="originalCharacterId" placeholder="Orijinal Karakter ID" class="form-input"></div>
+                <div class="flex gap-4 mt-4"><button type="button" id="cancel-button" class="btn btn-secondary flex-grow">İptal</button><button type="submit" id="save-button" class="btn btn-primary flex-grow">Kaydet</button></div>
             </form>
         </div>
 
         <main>
             <h2 class="text-2xl font-bold mb-4">Mevcut Kayıtlar</h2>
-            <div id="admin-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                </div>
+            <div id="admin-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
             <p id="no-results" class="text-center text-lg mt-8 hidden" style="color: var(--md-sys-color-on-surface-variant);">Hiçbir kayıt bulunamadı.</p>
         </main>
     </div>
 
-    <div id="enlarged-image-overlay" class="enlarged-image-container hidden" onclick="closeEnlargedImage()">
-        <button class="icon-button absolute top-4 right-4 text-white text-4xl z-10" onclick="closeEnlargedImage(event)" aria-label="Resmi Kapat">
-            <span class="material-symbols-outlined" style="font-size: 36px;">close</span>
-        </button>
-        <img id="enlarged-image" src="" alt="Büyük Resim" class="enlarged-image">
-    </div>
+    <div id="login-modal" class="modal-backdrop hidden" onclick="closeLoginModal()"><div class="modal-content" onclick="event.stopPropagation()"><button class="icon-button absolute top-2 right-2" onclick="closeLoginModal()" aria-label="Kapat"><span class="material-symbols-outlined">close</span></button><h2 class="text-2xl font-bold mb-4 text-center">Yönetici Girişi</h2><div class="flex flex-col gap-3"><input type="email" id="admin-email" placeholder="E-posta" class="form-input"><input type="password" id="admin-password" placeholder="Şifre" class="form-input"><button id="login-submit-btn" class="btn btn-success w-full mt-2">Giriş Yap</button><p id="login-status" class="mt-2 text-center text-red-400 h-5"></p></div></div></div>
+    <div id="enlarged-image-overlay" class="enlarged-image-container hidden" onclick="closeEnlargedImage()"><button class="icon-button absolute top-4 right-4 text-white text-4xl z-10" onclick="closeEnlargedImage(event)" aria-label="Resmi Kapat"><span class="material-symbols-outlined" style="font-size: 36px;">close</span></button><img id="enlarged-image" src="" alt="Büyük Resim" class="enlarged-image"></div>
 
     <script>
         const firebaseConfig = {
@@ -196,25 +127,17 @@
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-
-        // API anahtarlarını artık burada saklamıyoruz, güvenli bir şekilde Firebase'den çekeceğiz.
-        let apiKeys = {
-            imgbb_main_key: null,
-            imgbb_easteregg_key: null
-        };
-
-        let characters = [];
-        let easterEggs = [];
-        let editingItemId = null;
-        let editingItemType = null;
+        let apiKeys = { imgbb_main_key: null, imgbb_easteregg_key: null };
+        let characters = [], easterEggs = [], editingItemId = null, editingItemType = null;
+        
         const dom = {
+            appContainer: document.getElementById('app'),
             addEditFormContainer: document.getElementById('add-edit-form-container'),
             toggleFormBtn: document.getElementById('toggle-form-btn'),
+            toggleFormText: document.getElementById('toggle-form-text'),
+            toggleFormIcon: document.getElementById('toggle-form-icon'),
             addEditForm: document.getElementById('add-edit-form'),
             itemTypeSelect: document.getElementById('item-type-select'),
-            characterFields: document.getElementById('character-fields'),
-            fusionFields: document.getElementById('fusion-fields'),
-            easterEggFields: document.getElementById('easter-egg-fields'),
             formTitle: document.getElementById('form-title'),
             saveButton: document.getElementById('save-button'),
             cancelButton: document.getElementById('cancel-button'),
@@ -223,485 +146,257 @@
             noResults: document.getElementById('no-results'),
             enlargedImageOverlay: document.getElementById('enlarged-image-overlay'),
             enlargedImage: document.getElementById('enlarged-image'),
-
+            authActionBtn: document.getElementById('auth-action-btn'),
+            authActionText: document.getElementById('auth-action-text'),
+            authActionIcon: document.getElementById('auth-action-icon'),
+            loginModal: document.getElementById('login-modal'),
+            loginSubmitBtn: document.getElementById('login-submit-btn'),
             adminEmailInput: document.getElementById('admin-email'),
             adminPasswordInput: document.getElementById('admin-password'),
-            loginBtn: document.getElementById('login-btn'),
             loginStatus: document.getElementById('login-status'),
-            loggedInStatus: document.getElementById('logged-in-status'),
-            logoutBtn: document.getElementById('logout-btn'),
         };
 
+        const openLoginModal = () => { dom.loginModal.classList.add('visible'); dom.loginModal.classList.remove('hidden'); };
+        const closeLoginModal = () => { dom.loginModal.classList.remove('visible'); dom.loginModal.classList.add('hidden'); };
+        
         const getStarEmojis = (isFusion, starCount, iconName = 'star') => {
             const colors = { 1: 'text-orange-400', 2: 'text-slate-400', 3: 'text-amber-400', 4: 'text-fuchsia-400' };
-            const colorKey = isFusion ? 4 : Math.min(starCount, 3);
-            const starIcon = `<span class="material-symbols-outlined ${colors[colorKey]}" style="font-variation-settings: 'FILL' 1;">${iconName}</span>`;
-            const starHtml = Array(starCount).fill(starIcon).join('');
-            return isFusion ? `<div class="flex">${starHtml}</div>` : `<div class="flex">${starHtml}</div>`;
-        };
-
-        const get3StarImageUrl = (baseCharId) => {
-            const baseChar = characters.find(c => c.id === baseCharId && !c.isFusion);
-            const threeStarEvo = baseChar?.evolutions.find(e => e.star === 3);
-            return threeStarEvo ? threeStarEvo.imageUrl : (baseChar ? baseChar.imageUrl : '');
+            const starIcon = `<span class="material-symbols-outlined ${colors[isFusion ? 4 : Math.min(starCount, 4)]}" style="font-variation-settings: 'FILL' 1;">${iconName}</span>`;
+            return `<div class="flex">${Array(starCount || 1).fill(starIcon).join('')}</div>`;
         };
 
         function renderAdminPanel() {
             dom.adminGrid.innerHTML = '';
             const query = dom.searchInput.value.toLowerCase().trim();
             const allItems = [...characters, ...easterEggs].sort((a,b) => a.name.localeCompare(b.name, 'tr'));
-            
-            const filteredItems = allItems.filter(item => 
-                item.name.toLowerCase().includes(query) || item.id.toLowerCase().includes(query)
-            );
-
-            if (filteredItems.length === 0) {
-                dom.noResults.classList.remove('hidden');
-            } else {
-                dom.noResults.classList.add('hidden');
-            }
-
+            const filteredItems = allItems.filter(item => item.name.toLowerCase().includes(query) || item.id.toLowerCase().includes(query));
+            dom.noResults.classList.toggle('hidden', filteredItems.length > 0);
             filteredItems.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'item-card';
-
-                const isFusion = item.isFusion;
-                const isEasterEgg = item.originalCharacterId;
-                const starCount = isFusion ? 4 : (isEasterEgg ? 1 : (item.star || 1));
-                const starIcon = isEasterEgg ? 'auto_awesome favorite auto_awesome' : 'star';
-                const starHtml = getStarEmojis(isFusion || isEasterEgg, starCount, starIcon);
-                
-                const nameClass = isFusion || isEasterEgg ? 'font-fantastical-fusion' : '';
-
-                card.innerHTML = `
-                    <div class="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage('${item.imageUrl}')">
-                        <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-grow">
-                        <h4 class="font-bold text-lg truncate ${nameClass}">${item.name}</h4>
-                        <p class="text-sm text-gray-400">ID: ${item.id}</p>
-                        <div class="flex mt-1">${starHtml}</div>
-                    </div>
-                    <div class="flex-shrink-0 flex gap-2">
-                        <button class="icon-button edit-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" aria-label="Düzenle">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <button class="icon-button delete-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" aria-label="Sil">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </div>
-                `;
+                const isFusion = item.isFusion, isEasterEgg = item.originalCharacterId, nameClass = isFusion || isEasterEgg ? 'font-fantastical-fusion' : '';
+                let imageBlockHtml;
+                if(isFusion || isEasterEgg) {
+                    imageBlockHtml = `<div class="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage(event, '${item.imageUrl}')"><img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover"></div>`;
+                } else {
+                    const evo2 = item.evolutions?.find(e => e.star === 2), evo3 = item.evolutions?.find(e => e.star === 3);
+                    const thumbClass = "w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-black/20 border border-white/10 flex items-center justify-center", placeholderClass = "text-sm font-bold text-gray-500", imgClass = "w-full h-full object-cover cursor-zoom-in";
+                    imageBlockHtml = `<div class="flex items-center gap-3"><div class="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage(event, '${item.imageUrl}')"><img src="${item.imageUrl}" alt="${item.name} 1★" class="${imgClass}"></div><div class="flex flex-col gap-1.5"><div class="${thumbClass}" onclick="${evo2 ? `enlargeImage(event, '${evo2.imageUrl}')` : ''}">${evo2 ? `<img src="${evo2.imageUrl}" alt="${item.name} 2★" class="${imgClass}">` : `<span class="${placeholderClass}">2★</span>`}</div><div class="${thumbClass}" onclick="${evo3 ? `enlargeImage(event, '${evo3.imageUrl}')` : ''}">${evo3 ? `<img src="${evo3.imageUrl}" alt="${item.name} 3★" class="${imgClass}">` : `<span class="${placeholderClass}">3★</span>`}</div></div></div>`;
+                }
+                let starHtml;
+                if(isFusion) starHtml = getStarEmojis(true, 4); else if (isEasterEgg) starHtml = getStarEmojis(false, 1, 'auto_awesome'); else starHtml = getStarEmojis(false, 1);
+                card.innerHTML = `${imageBlockHtml}<div class="flex-grow"><h4 class="font-bold text-lg truncate ${nameClass}">${item.name}</h4><p class="text-sm text-gray-400">ID: ${item.id}</p><div class="flex mt-1">${starHtml}</div></div><div class="flex-shrink-0 flex gap-2"><button class="icon-button edit-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" aria-label="Düzenle"><span class="material-symbols-outlined">edit</span></button><button class="icon-button delete-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" aria-label="Sil"><span class="material-symbols-outlined">delete</span></button></div>`;
                 dom.adminGrid.appendChild(card);
             });
             setupEditDeleteListeners();
         }
-
-        function toggleFormFields() {
-            const selectedType = dom.itemTypeSelect.value;
-            dom.characterFields.classList.add('hidden');
-            dom.fusionFields.classList.add('hidden');
-            dom.easterEggFields.classList.add('hidden');
-            
-            if (selectedType === 'easterEgg') {
-                dom.addEditForm.querySelector('[name="imageFile"]').parentElement.querySelector('label').textContent = 'Easter Egg Resim';
-            } else {
-                dom.addEditForm.querySelector('[name="imageFile"]').parentElement.querySelector('label').textContent = 'Ana Resim';
-            }
-
-            if (selectedType === 'character') { dom.characterFields.classList.remove('hidden'); }
-            else if (selectedType === 'fusion') { dom.fusionFields.classList.remove('hidden'); }
-            else if (selectedType === 'easterEgg') { dom.easterEggFields.classList.remove('hidden'); }
-        }
-
-        function setupEditDeleteListeners() {
-            dom.adminGrid.querySelectorAll('.edit-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = e.currentTarget.dataset.id;
-                    const type = e.currentTarget.dataset.type;
-                    loadItemForEdit(id, type);
-                });
-            });
-            dom.adminGrid.querySelectorAll('.delete-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const id = e.currentTarget.dataset.id;
-                    const type = e.currentTarget.dataset.type;
-                    deleteItem(id, type);
-                });
-            });
-        }
         
-        function loadItemForEdit(itemId, itemType) {
-            let itemData;
-            if (itemType === 'easterEgg') { itemData = easterEggs.find(i => i.id === itemId); }
-            else { itemData = characters.find(i => i.id === itemId); }
-            
-            if (!itemData) {
-                alert("Düzenlenecek kayıt bulunamadı.");
-                return;
-            }
-            
-            editingItemId = itemId;
-            editingItemType = itemType;
-            dom.formTitle.textContent = "Kaydı Düzenle";
-            dom.itemTypeSelect.value = itemType;
-            dom.itemTypeSelect.disabled = true;
-            dom.addEditForm.elements['id'].value = itemId;
-            dom.addEditForm.elements['id'].readOnly = true; 
-            dom.addEditForm.elements['name'].value = itemData.name || '';
-            
-            dom.addEditForm.querySelector('[name="imageFile"]').parentElement.style.display = 'none';
-            
-            if (itemType === 'character') {
-                dom.addEditForm.querySelector('[name="evolutions_1_file"]').parentElement.style.display = 'none';
-                dom.addEditForm.querySelector('[name="evolutions_2_file"]').parentElement.style.display = 'none';
-            }
-
-            const urlContainer = document.createElement('div');
-            urlContainer.id = 'temp-url-container';
-
-            const imageUrlInput = document.createElement('input');
-            imageUrlInput.type = 'text';
-            imageUrlInput.name = 'imageUrl';
-            imageUrlInput.placeholder = 'Ana Resim URL';
-            imageUrlInput.className = 'form-input mb-3';
-            imageUrlInput.value = itemData.imageUrl || '';
-            urlContainer.appendChild(imageUrlInput);
-
-            if (itemType === 'character') {
-                const evo1UrlInput = document.createElement('input');
-                evo1UrlInput.type = 'text';
-                evo1UrlInput.name = 'evolutions_1';
-                evo1UrlInput.placeholder = '2★ Resim URL (isteğe bağlı)';
-                evo1UrlInput.className = 'form-input mb-3';
-                evo1UrlInput.value = itemData.evolutions?.find(e => e.star === 2)?.imageUrl || '';
-                urlContainer.appendChild(evo1UrlInput);
-
-                const evo2UrlInput = document.createElement('input');
-                evo2UrlInput.type = 'text';
-                evo2UrlInput.name = 'evolutions_2';
-                evo2UrlInput.placeholder = '3★ Resim URL (isteğe bağlı)';
-                evo2UrlInput.className = 'form-input mb-3';
-                evo2UrlInput.value = itemData.evolutions?.find(e => e.star === 3)?.imageUrl || '';
-                urlContainer.appendChild(evo2UrlInput);
-            }
-            
-            dom.addEditForm.insertBefore(urlContainer, dom.addEditForm.querySelector('#character-fields'));
-
-            dom.saveButton.textContent = "Güncelle";
-            dom.cancelButton.classList.remove('hidden');
-            
-            toggleFormFields();
-            dom.addEditFormContainer.classList.remove('hidden');
-            dom.toggleFormBtn.textContent = 'Yeni Kayıt Ekle ▲';
-
-            if (itemType === 'fusion') {
-                dom.addEditForm.elements['fusionPartners_0'].value = itemData.fusionPartners?.[0] || '';
-                dom.addEditForm.elements['fusionPartners_1'].value = itemData.fusionPartners?.[1] || '';
-            } else if (itemType === 'easterEgg') {
-                dom.addEditForm.elements['originalCharacterId'].value = itemData.originalCharacterId || '';
-            }
-        }
-
+        // DEĞİŞİKLİK BURADA: resetForm fonksiyonuna buton aktivasyonu eklendi
         function resetForm() {
-            dom.addEditForm.reset();
-            editingItemId = null;
+            dom.addEditForm.reset(); 
+            editingItemId = null; 
             editingItemType = null;
             dom.formTitle.textContent = "Yeni Kayıt Ekle";
             dom.itemTypeSelect.disabled = false;
             dom.addEditForm.elements['id'].readOnly = false;
             dom.saveButton.textContent = "Kaydet";
             dom.cancelButton.classList.add('hidden');
-            toggleFormFields();
-
-            const tempUrlContainer = document.getElementById('temp-url-container');
-            if (tempUrlContainer) {
-                tempUrlContainer.remove();
-            }
-            dom.addEditForm.querySelector('[name="imageFile"]').parentElement.style.display = 'block';
-            dom.addEditForm.querySelector('[name="evolutions_1_file"]').parentElement.style.display = 'block';
-            dom.addEditForm.querySelector('[name="evolutions_2_file"]').parentElement.style.display = 'block';
-        }
-
-        async function uploadImageToImgBB(file, apiKey) {
-            if (!file) return null;
-            if (!apiKey) {
-                alert("Resim yükleme API anahtarı bulunamadı. Lütfen yönetici olarak giriş yapın.");
-                throw new Error("ImgBB API anahtarı eksik.");
-            }
-
-            const formData = new FormData();
-            formData.append('image', file);
             
-            try {
-                const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-                    method: 'POST',
-                    body: formData
-                });
+            // SON HATA DÜZELTMESİ: Kaydet butonunu tekrar aktif et
+            dom.saveButton.disabled = false;
 
-                if (!response.ok) {
-                    throw new Error(`ImgBB yükleme hatası: ${response.statusText}`);
-                }
+            const form = dom.addEditForm;
+            form.elements['imageFile'].value = '';
+            form.elements['evolutions_1_file'].value = '';
+            form.elements['evolutions_2_file'].value = '';
 
-                const result = await response.json();
-                if (result.success) {
-                    return result.data.url;
-                } else {
-                    throw new Error(result.error.message || "ImgBB yüklemesi başarısız.");
-                }
-            } catch (error) {
-                console.error("ImgBB API'sine yükleme hatası:", error);
-                alert(`Resim yüklenirken bir hata oluştu: ${error.message}`);
-                return null;
+            toggleFormFields();
+            document.getElementById('temp-url-container')?.remove();
+            ['imageFile', 'evolutions_1_file', 'evolutions_2_file'].forEach(name => {
+                const el = form.querySelector(`[name="${name}"]`);
+                if(el) el.parentElement.style.display = 'block';
+            });
+        }
+        
+        function updateAuthUI(user) {
+            const contentToLock = [dom.appContainer.querySelector('main'), dom.toggleFormBtn.closest('.flex.sm\\:flex-row'), dom.addEditFormContainer];
+            if (user) {
+                dom.authActionText.textContent = 'Çıkış Yap'; dom.authActionIcon.textContent = 'logout';
+                dom.authActionBtn.onclick = () => { if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) firebase.auth().signOut(); };
+                closeLoginModal();
+                fetchApiKeys().then(success => contentToLock.forEach(el => { if(el) { el.style.opacity = success ? '1' : '0.5'; el.style.pointerEvents = success ? 'auto' : 'none'; }}));
+            } else {
+                dom.authActionText.textContent = 'Giriş Yap'; dom.authActionIcon.textContent = 'login';
+                dom.authActionBtn.onclick = openLoginModal;
+                apiKeys = { imgbb_main_key: null, imgbb_easteregg_key: null };
+                contentToLock.forEach(el => { if(el) { el.style.opacity = '0.5'; el.style.pointerEvents = 'none'; }});
+                dom.addEditFormContainer.classList.add('hidden');
+                dom.toggleFormText.textContent = 'Yeni Kayıt'; dom.toggleFormIcon.textContent = 'add';
             }
         }
         
-        async function handleFormSubmit(event) {
-            event.preventDefault();
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchItems();
+            dom.loginSubmitBtn.addEventListener('click', async () => {
+                const email = dom.adminEmailInput.value; const password = dom.adminPasswordInput.value;
+                dom.loginStatus.textContent = '';
+                try {
+                    dom.loginSubmitBtn.disabled = true; dom.loginSubmitBtn.textContent = 'Giriş yapılıyor...';
+                    await firebase.auth().signInWithEmailAndPassword(email, password);
+                } catch (error) { dom.loginStatus.textContent = `Hata: ${error.code}`;
+                } finally { dom.loginSubmitBtn.disabled = false; dom.loginSubmitBtn.textContent = 'Giriş Yap'; }
+            });
+            firebase.auth().onAuthStateChanged(updateAuthUI);
+            dom.itemTypeSelect.addEventListener('change', toggleFormFields);
+            dom.addEditForm.addEventListener('submit', handleFormSubmit);
+            dom.cancelButton.addEventListener('click', () => {
+                resetForm(); dom.addEditFormContainer.classList.add('hidden');
+                dom.toggleFormText.textContent = 'Yeni Kayıt'; dom.toggleFormIcon.textContent = 'add';
+            });
+            dom.searchInput.addEventListener('input', renderAdminPanel);
+            dom.toggleFormBtn.addEventListener('click', () => {
+                const isHidden = dom.addEditFormContainer.classList.toggle('hidden');
+                dom.toggleFormText.textContent = isHidden ? 'Yeni Kayıt' : 'Formu Kapat';
+                dom.toggleFormIcon.textContent = isHidden ? 'add' : 'close';
+                if(isHidden) resetForm();
+            });
+            dom.addEditFormContainer.classList.add('hidden');
+        });
+
+        // Diğer fonksiyonlar (değişiklik yok)
+        toggleFormFields = function() {
+            const selectedType = dom.itemTypeSelect.value;
+            dom.addEditForm.querySelector('#character-fields').classList.toggle('hidden', selectedType !== 'character');
+            dom.addEditForm.querySelector('#fusion-fields').classList.toggle('hidden', selectedType !== 'fusion');
+            dom.addEditForm.querySelector('#easter-egg-fields').classList.toggle('hidden', selectedType !== 'easterEgg');
+            dom.addEditForm.querySelector('[name="imageFile"]').parentElement.querySelector('label').textContent = selectedType === 'easterEgg' ? 'Easter Egg Resim' : 'Ana Resim';
+        };
+        setupEditDeleteListeners = function() {
+            dom.adminGrid.querySelectorAll('.edit-button, .delete-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const { id, type } = e.currentTarget.dataset;
+                    if (button.classList.contains('edit-button')) loadItemForEdit(id, type);
+                    else deleteItem(id, type);
+                });
+            });
+        };
+        loadItemForEdit = function(itemId, itemType) {
+            resetForm();
+            const itemData = (itemType === 'easterEgg' ? easterEggs : characters).find(i => i.id === itemId);
+            if (!itemData) return alert("Kayıt bulunamadı.");
+            editingItemId = itemId; editingItemType = itemType;
+            dom.formTitle.textContent = "Kaydı Düzenle";
+            dom.itemTypeSelect.value = itemType; dom.itemTypeSelect.disabled = true;
             const form = dom.addEditForm;
-            const id = form.elements['id'].value.trim();
-            if (!id) {
-                alert("ID alanı boş bırakılamaz.");
-                return;
+            form.elements['id'].value = itemId; form.elements['id'].readOnly = true; 
+            form.elements['name'].value = itemData.name || '';
+            ['imageFile', 'evolutions_1_file', 'evolutions_2_file'].forEach(name => {
+                if(form.querySelector(`[name="${name}"]`)) form.querySelector(`[name="${name}"]`).parentElement.style.display = 'none';
+            });
+            const urlContainer = document.createElement('div');
+            urlContainer.id = 'temp-url-container'; urlContainer.className = 'flex flex-col gap-3';
+            const createUrlInput = (name, placeholder, value) => `<input type="text" name="${name}" placeholder="${placeholder}" class="form-input" value="${value}">`;
+            let inputsHtml = createUrlInput('imageUrl', 'Ana Resim URL', itemData.imageUrl || '');
+            if (itemType === 'character') {
+                inputsHtml += createUrlInput('evolutions_1', '2★ Resim URL', itemData.evolutions?.find(e=>e.star===2)?.imageUrl || '');
+                inputsHtml += createUrlInput('evolutions_2', '3★ Resim URL', itemData.evolutions?.find(e=>e.star===3)?.imageUrl || '');
             }
-
-            if (!firebase.auth().currentUser) { 
-                alert("Bu işlemi yapmak için yönetici olarak giriş yapmalısınız.");
-                return;
+            urlContainer.innerHTML = inputsHtml;
+            form.insertBefore(urlContainer, form.querySelector('#character-fields'));
+            if (itemType === 'fusion') {
+                form.elements['fusionPartners_0'].value = itemData.fusionPartners?.[0] || '';
+                form.elements['fusionPartners_1'].value = itemData.fusionPartners?.[1] || '';
+            } else if (itemType === 'easterEgg') {
+                form.elements['originalCharacterId'].value = itemData.originalCharacterId || '';
             }
-
-            const type = dom.itemTypeSelect.value;
-            const isEditing = !!editingItemId;
-            let data = { name: form.elements['name'].value.trim() };
-            let collectionName = 'characters';
-
-            const mainImageFile = form.elements['imageFile']?.files[0];
-            const evo1File = form.elements['evolutions_1_file']?.files[0];
-            const evo2File = form.elements['evolutions_2_file']?.files[0];
-
-            dom.saveButton.textContent = 'Yükleniyor...';
-            dom.saveButton.disabled = true;
-
+            dom.saveButton.textContent = "Güncelle";
+            dom.cancelButton.classList.remove('hidden');
+            toggleFormFields();
+            dom.addEditFormContainer.classList.remove('hidden');
+            dom.toggleFormText.textContent = 'Formu Kapat'; dom.toggleFormIcon.textContent = 'close';
+        };
+        uploadImageToImgBB = async function(file, apiKey) {
+            if (!file) return null; if (!apiKey) { alert("API anahtarı eksik."); throw new Error("API anahtarı eksik."); }
+            const formData = new FormData(); formData.append('image', file);
             try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: formData });
+                if (!res.ok) throw new Error(`Yükleme hatası: ${res.statusText}`);
+                const result = await res.json();
+                if (result.success) return result.data.url; else throw new Error(result.error.message);
+            } catch (error) { alert(`Resim yüklenemedi: ${error.message}`); return null; }
+        };
+        handleFormSubmit = async function(event) {
+            event.preventDefault();
+            const form = dom.addEditForm; const id = form.elements['id'].value.trim();
+            if (!id || !firebase.auth().currentUser) return alert(!id ? "ID boş olamaz." : "Giriş yapmalısınız.");
+            dom.saveButton.textContent = 'Yükleniyor...'; dom.saveButton.disabled = true;
+            try {
+                const type = dom.itemTypeSelect.value, isEditing = !!editingItemId;
+                let data = { name: form.elements['name'].value.trim() };
+                let collectionName = type === 'easterEgg' ? 'easterEggs' : 'characters';
                 if (isEditing) {
                     data.imageUrl = form.elements['imageUrl']?.value.trim() || '';
                 } else {
-                    if (!mainImageFile) {
-                        alert("Ana resim seçmek zorunludur.");
-                        dom.saveButton.textContent = 'Kaydet';
-                        dom.saveButton.disabled = false;
-                        return;
-                    }
-                    const apiKeyToUse = type === 'easterEgg' ? apiKeys.imgbb_easteregg_key : apiKeys.imgbb_main_key;
-                    data.imageUrl = await uploadImageToImgBB(mainImageFile, apiKeyToUse);
+                    const mainFile = form.elements['imageFile']?.files[0];
+                    if (!mainFile) throw new Error("Ana resim seçmek zorunludur.");
+                    data.imageUrl = await uploadImageToImgBB(mainFile, type === 'easterEgg' ? apiKeys.imgbb_easteregg_key : apiKeys.imgbb_main_key);
+                    if(!data.imageUrl) throw new Error("Ana resim yüklenemedi.");
                 }
-
-                if (!data.imageUrl && !isEditing) {
-                    dom.saveButton.textContent = 'Kaydet';
-                    dom.saveButton.disabled = false;
-                    return;
-                }
-
                 if (type === 'character') {
-                    data.star = 1;
-                    data.isFusion = false;
-                    data.evolutions = [];
-                    
+                    data.star = 1; data.isFusion = false; data.evolutions = [];
                     if (isEditing) {
                         const evo1Url = form.elements['evolutions_1']?.value.trim();
                         const evo2Url = form.elements['evolutions_2']?.value.trim();
                         if (evo1Url) data.evolutions.push({ star: 2, imageUrl: evo1Url });
                         if (evo2Url) data.evolutions.push({ star: 3, imageUrl: evo2Url });
                     } else {
-                        const evo1Url = evo1File ? await uploadImageToImgBB(evo1File, apiKeys.imgbb_main_key) : null;
-                        const evo2Url = evo2File ? await uploadImageToImgBB(evo2File, apiKeys.imgbb_main_key) : null;
+                        const [evo1File, evo2File] = [form.elements['evolutions_1_file']?.files[0], form.elements['evolutions_2_file']?.files[0]];
+                        const [evo1Url, evo2Url] = await Promise.all([ uploadImageToImgBB(evo1File, apiKeys.imgbb_main_key), uploadImageToImgBB(evo2File, apiKeys.imgbb_main_key) ]);
                         if (evo1Url) data.evolutions.push({ star: 2, imageUrl: evo1Url });
                         if (evo2Url) data.evolutions.push({ star: 3, imageUrl: evo2Url });
                     }
                 } else if (type === 'fusion') {
-                    data.star = 4;
-                    data.isFusion = true;
-                    data.fusionPartners = [];
-                    if (form.elements['fusionPartners_0'].value.trim()) data.fusionPartners.push(form.elements['fusionPartners_0'].value.trim());
-                    if (form.elements['fusionPartners_1'].value.trim()) data.fusionPartners.push(form.elements['fusionPartners_1'].value.trim());
+                    data.star = 4; data.isFusion = true;
+                    data.fusionPartners = [form.elements['fusionPartners_0'].value.trim(), form.elements['fusionPartners_1'].value.trim()].filter(Boolean);
                 } else if (type === 'easterEgg') {
-                    collectionName = 'easterEggs';
                     data.originalCharacterId = form.elements['originalCharacterId'].value.trim();
                 }
-
                 await db.collection(collectionName).doc(id).set(data, { merge: true });
                 alert(`Kayıt başarıyla ${isEditing ? 'güncellendi' : 'kaydedildi'}!`);
                 await fetchItems();
+                dom.addEditFormContainer.classList.add('hidden');
+                dom.toggleFormText.textContent = 'Yeni Kayıt'; dom.toggleFormIcon.textContent = 'add';
                 resetForm();
-
-            } catch (error) {
-                console.error("Kayıt sırasında hata:", error);
-                alert("Bir hata oluştu. Lütfen konsolu (F12) kontrol edin.");
-            } finally {
-                dom.saveButton.textContent = isEditing ? 'Güncelle' : 'Kaydet';
-                dom.saveButton.disabled = false;
-            }
-        }
-
-        async function deleteItem(itemId, itemType) {
+            } catch (error) { alert(`Hata: ${error.message}`); } finally { dom.saveButton.textContent = isEditing ? 'Güncelle' : 'Kaydet'; dom.saveButton.disabled = false; }
+        };
+        deleteItem = async function(itemId, itemType) {
             const collectionName = itemType === 'easterEgg' ? 'easterEggs' : 'characters';
-            const item = (itemType === 'easterEgg' ? easterEggs : characters).find(i => i.id === itemId);
-            
-            if (!item) {
-                alert("Silinecek öğe bulunamadı.");
-                return;
-            }
-
-            if (confirm(`'${item.name}' adlı kaydı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
-                try {
-                    if (firebase.auth().currentUser) {
-                        await db.collection(collectionName).doc(itemId).delete();
-                        alert("Kayıt başarıyla silindi.");
-                        await fetchItems();
-                    } else {
-                        alert("Bu işlemi yapmak için yönetici olarak giriş yapmalısınız.");
-                    }
-                } catch (error) {
-                    console.error("Silme işlemi sırasında hata:", error);
-                    alert("Bir hata oluştu. Lütfen konsolu (F12) kontrol edin.");
-                }
-            }
-        }
-
-        async function fetchItems() {
+            const item = (collectionName === 'easterEggs' ? easterEggs : characters).find(i => i.id === itemId);
+            if (!item || !confirm(`'${item.name}' adlı kaydı silmek istediğinizden emin misiniz?`)) return;
             try {
-                const charactersSnapshot = await db.collection('characters').get();
-                characters = charactersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const easterEggsSnapshot = await db.collection('easterEggs').get();
-                easterEggs = easterEggsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Firebase'den veriler başarıyla çekildi!");
+                if(!firebase.auth().currentUser) return alert("Giriş yapmalısınız.");
+                await db.collection(collectionName).doc(itemId).delete();
+                alert("Kayıt silindi.");
+                await fetchItems();
+            } catch (error) { alert(`Silme hatası: ${error.message}`); }
+        };
+        fetchItems = async function() {
+            try {
+                const [charsSnap, eeSnap] = await Promise.all([db.collection('characters').get(), db.collection('easterEggs').get()]);
+                characters = charsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                easterEggs = eeSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderAdminPanel();
-            } catch (error) {
-                console.error("Veriler çekilirken hata oluştu:", error);
-                dom.adminGrid.innerHTML = `<p class="col-span-full text-center text-lg text-red-500">Veriler çekilemedi. Lütfen Firebase ayarlarınızı kontrol edin.</p>`;
-            }
-        }
-
-        function enlargeImage(src) {
-            dom.enlargedImage.src = src;
-            dom.enlargedImageOverlay.classList.remove('hidden');
-        }
-
-        function closeEnlargedImage(event) {
-            if (event) event.stopPropagation();
-            dom.enlargedImageOverlay.classList.add('hidden');
-        }
-
-        // YENİ: Firebase'den API anahtarlarını çekme fonksiyonu
-        async function fetchApiKeys() {
+            } catch (error) { dom.adminGrid.innerHTML = `<p class="col-span-full text-center text-lg text-red-500">Veriler çekilemedi.</p>`; }
+        };
+        enlargeImage = function(event, src) { if(event) event.stopPropagation(); if(src) {dom.enlargedImage.src = src; dom.enlargedImageOverlay.classList.remove('hidden');} };
+        closeEnlargedImage = function(event) { if (event) event.stopPropagation(); dom.enlargedImageOverlay.classList.add('hidden'); };
+        fetchApiKeys = async function() {
             try {
                 const apiKeysDoc = await db.collection('settings').doc('apiKeys').get();
-                if (apiKeysDoc.exists) {
-                    apiKeys = apiKeysDoc.data();
-                    console.log("API anahtarları başarıyla çekildi.");
-                    return true;
-                } else {
-                    console.error("API anahtarları dökümanı bulunamadı!");
-                    alert("Yönetici ayarları bulunamadı. Lütfen Firebase'de 'settings/apiKeys' dökümanını oluşturun.");
-                    return false;
-                }
-            } catch (error) {
-                console.error("API anahtarları çekilirken hata oluştu:", error);
-                alert("Yönetici ayarları çekilemedi. Lütfen internet bağlantınızı ve Firebase ayarlarınızı kontrol edin.");
-                return false;
-            }
-        }
-
-        function updateAuthUI(user) {
-            const loginFormContainer = document.getElementById('login-form-container'); 
-            if (user) {
-                loginFormContainer.classList.add('hidden');
-                dom.loggedInStatus.classList.remove('hidden');
-
-                // YENİ: Kullanıcı oturum açtığında anahtarları çek
-                fetchApiKeys().then(success => {
-                    if (success) {
-                        dom.addEditFormContainer.style.pointerEvents = 'auto';
-                        dom.addEditForm.style.opacity = '1';
-                        dom.toggleFormBtn.disabled = false;
-                        dom.adminGrid.querySelectorAll('.edit-button, .delete-button').forEach(btn => btn.disabled = false);
-                    } else {
-                         // Anahtarlar çekilemezse yetkileri kısıtla
-                        dom.addEditFormContainer.style.pointerEvents = 'none';
-                        dom.addEditForm.style.opacity = '0.5';
-                        dom.toggleFormBtn.disabled = true;
-                        dom.adminGrid.querySelectorAll('.edit-button, .delete-button').forEach(btn => btn.disabled = true);
-                    }
-                });
-            } else {
-                loginFormContainer.classList.remove('hidden');
-                dom.loggedInStatus.classList.add('hidden');
-                dom.loginStatus.textContent = '';
-                dom.adminEmailInput.value = '';
-                dom.adminPasswordInput.value = '';
-                apiKeys = { imgbb_main_key: null, imgbb_easteregg_key: null }; // Anahtarları sıfırla
-
-                dom.addEditFormContainer.style.pointerEvents = 'none';
-                dom.addEditForm.style.opacity = '0.5';
-                dom.toggleFormBtn.disabled = true;
-                dom.adminGrid.querySelectorAll('.edit-button, .delete-button').forEach(btn => btn.disabled = true);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchItems();
-
-            dom.itemTypeSelect.addEventListener('change', toggleFormFields);
-            dom.addEditForm.addEventListener('submit', handleFormSubmit);
-            dom.cancelButton.addEventListener('click', resetForm);
-            dom.searchInput.addEventListener('input', renderAdminPanel);
-
-            dom.toggleFormBtn.addEventListener('click', () => {
-                dom.addEditFormContainer.classList.toggle('hidden');
-                if (dom.addEditFormContainer.classList.contains('hidden')) {
-                    dom.toggleFormBtn.textContent = 'Yeni Kayıt Ekle ▼';
-                    resetForm();
-                } else {
-                    dom.toggleFormBtn.textContent = 'Yeni Kayıt Ekle ▲';
-                }
-            });
-
-            dom.addEditFormContainer.classList.add('hidden');
-            dom.toggleFormBtn.textContent = 'Yeni Kayıt Ekle ▼';
-
-            dom.loginBtn.addEventListener('click', async () => {
-                const email = dom.adminEmailInput.value;
-                const password = dom.adminPasswordInput.value;
-                dom.loginStatus.textContent = '';
-
-                try {
-                    await firebase.auth().signInWithEmailAndPassword(email, password);
-                    dom.loginStatus.textContent = 'Giriş başarılı!';
-                    dom.loginStatus.style.color = 'lightgreen';
-                    updateAuthUI(firebase.auth().currentUser);
-                } catch (error) {
-                    dom.loginStatus.textContent = `Giriş Hatası: ${error.message}`;
-                    dom.loginStatus.style.color = 'red';
-                    console.error("Giriş hatası:", error);
-                }
-            });
-
-            dom.logoutBtn.addEventListener('click', async () => {
-                try {
-                    await firebase.auth().signOut();
-                    dom.loginStatus.textContent = 'Çıkış yapıldı.';
-                    dom.loginStatus.style.color = 'lightgreen';
-                    updateAuthUI(null);
-                } catch (error) {
-                    dom.loginStatus.textContent = `Çıkış Hatası: ${error.message}`;
-                    dom.loginStatus.style.color = 'red';
-                    console.error("Çıkış hatası:", error);
-                }
-            });
-
-            firebase.auth().onAuthStateChanged((user) => {
-                updateAuthUI(user);
-            });
-        });
+                if (apiKeysDoc.exists) { apiKeys = apiKeysDoc.data(); return true; }
+                else { alert("Yönetici API anahtarları bulunamadı."); return false; }
+            } catch (error) { alert("API anahtarları çekilemedi."); return false; }
+        };
     </script>
 </body>
 </html>
