@@ -33,12 +33,18 @@
             --md-sys-color-danger-rgb: 239, 83, 80;
             --md-sys-color-danger: rgb(var(--md-sys-color-danger-rgb));
             --md-sys-color-on-danger: #ffffff;
+            /* YENİ: Emekli karakterler için renk */
+            --md-sys-color-warning-rgb: 255, 183, 77;
+            --md-sys-color-warning: rgb(var(--md-sys-color-warning-rgb));
         }
         body { font-family: 'Manrope', sans-serif; background-color: var(--md-sys-color-background); color: var(--md-sys-color-on-background); }
         .form-input { background-color: var(--md-sys-color-surface-container-high); border: 1px solid var(--md-sys-color-outline-variant); color: var(--md-sys-color-on-surface); border-radius: 8px; padding: 12px; width: 100%; transition: all 0.2s ease; }
         .form-input:focus { border-color: var(--md-sys-color-primary); box-shadow: 0 0 0 3px rgba(var(--md-sys-color-primary-rgb), 0.2); outline: none; }
         .item-card { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 16px; background-color: var(--md-sys-color-surface-container); transition: all 0.2s ease-in-out; border: 1px solid var(--md-sys-color-outline-variant); }
         .item-card:hover { transform: translateY(-4px); background-color: var(--md-sys-color-surface-container-high); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+        /* YENİ: Emekli kartı için stil */
+        .item-card.retired { opacity: 0.7; border-left: 4px solid var(--md-sys-color-warning); }
+        .item-card.retired:hover { transform: translateY(0); opacity: 0.8; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 8px; font-weight: 700; text-decoration: none; border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease; }
         .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -50,6 +56,8 @@
         .icon-button { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background-color: transparent; color: var(--md-sys-color-on-surface-variant); cursor: pointer; transition: all 0.2s; }
         .icon-button:hover.edit-button { background-color: rgba(var(--md-sys-color-primary-rgb), 0.1); color: var(--md-sys-color-primary); }
         .icon-button:hover.delete-button { background-color: rgba(var(--md-sys-color-danger-rgb), 0.1); color: var(--md-sys-color-danger); }
+        /* YENİ: Emekli etme butonu için stil */
+        .icon-button:hover.retire-button { background-color: rgba(var(--md-sys-color-warning-rgb), 0.1); color: var(--md-sys-color-warning); }
         .modal-backdrop { z-index: 1000; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
         .modal-backdrop.visible { opacity: 1; pointer-events: auto; }
         .modal-content { background-color: var(--md-sys-color-surface-container); border-radius: 24px; padding: 2rem; width: 100%; max-width: 400px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transform: scale(0.95); transition: transform 0.3s ease; }
@@ -99,7 +107,7 @@
                     <div><label class="block text-sm font-medium mb-1">2★ Resim</label><input type="file" name="evolutions_1_file" class="form-input"></div>
                     <div><label class="block text-sm font-medium mb-1">3★ Resim</label><input type="file" name="evolutions_2_file" class="form-input"></div>
                 </div>
-                <div id="fusion-fields" class="hidden flex-col gap-3"><input type="text" name="fusionPartners_0" placeholder="Partner 1 ID" class="form-input"><input type="text" name="fusionPartners_1" placeholder="Partner 2 ID" class="form-input"></div>
+                <div id="fusion-fields" class="hidden flex flex-col gap-3"><input type="text" name="fusionPartners_0" placeholder="Partner 1 ID" class="form-input"><input type="text" name="fusionPartners_1" placeholder="Partner 2 ID" class="form-input"></div>
                 <div id="easter-egg-fields" class="hidden flex-col gap-3"><input type="text" name="originalCharacterId" placeholder="Orijinal Karakter ID" class="form-input"></div>
                 <div class="flex gap-4 mt-4"><button type="button" id="cancel-button" class="btn btn-secondary flex-grow">İptal</button><button type="submit" id="save-button" class="btn btn-primary flex-grow">Kaydet</button></div>
             </form>
@@ -117,18 +125,19 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyDrEU_QEuvf960ZPxo29n6x8N9K7yGIkCQ",
-            authDomain: "karaktergalerisi-dc337.firebaseapp.com",
-            projectId: "karaktergalerisi-dc337",
-            storageBucket: "karaktergalerisi-dc337.firebasestorage.app",
-            messagingSenderId: "486669559067",
-            appId: "1:486669559067:web:20c76a78a41d9bc0bbdfbe"
-        };
+  apiKey: "AIzaSyDrEU_QEuvf960ZPxo29n6x8N9K7yGIkCQ",
+  authDomain: "karaktergalerisi-dc337.firebaseapp.com",
+  projectId: "karaktergalerisi-dc337",
+  storageBucket: "karaktergalerisi-dc337.firebasestorage.app",
+  messagingSenderId: "486669559067",
+  appId: "1:486669559067:web:20c76a78a41d9bc0bbdfbe"
+};
         
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         let apiKeys = { imgbb_main_key: null, imgbb_easteregg_key: null };
-        let characters = [], easterEggs = [], editingItemId = null, editingItemType = null;
+        // YENİ: Emekli karakterler için yeni bir dizi tanımlandı
+        let characters = [], easterEggs = [], dismissed = [], editingItemId = null, editingItemType = null;
         
         const dom = {
             appContainer: document.getElementById('app'),
@@ -165,16 +174,24 @@
             return `<div class="flex">${Array(starCount || 1).fill(starIcon).join('')}</div>`;
         };
 
+        // YENİ: renderAdminPanel fonksiyonu emekli karakterleri de gösterecek şekilde güncellendi
         function renderAdminPanel() {
             dom.adminGrid.innerHTML = '';
             const query = dom.searchInput.value.toLowerCase().trim();
-            const allItems = [...characters, ...easterEggs].sort((a,b) => a.name.localeCompare(b.name, 'tr'));
+            // YENİ: Tüm kayıtlar (aktif ve emekli) birleştirilip isme göre sıralanıyor
+            const allItems = [...characters, ...easterEggs, ...dismissed].sort((a,b) => a.name.localeCompare(b.name, 'tr'));
+            
             const filteredItems = allItems.filter(item => item.name.toLowerCase().includes(query) || item.id.toLowerCase().includes(query));
             dom.noResults.classList.toggle('hidden', filteredItems.length > 0);
+
             filteredItems.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'item-card';
+                // YENİ: Emekli ise özel class ekleniyor
+                const isRetired = item.isRetired || false;
+                card.className = `item-card ${isRetired ? 'retired' : ''}`;
+
                 const isFusion = item.isFusion, isEasterEgg = item.originalCharacterId, nameClass = isFusion || isEasterEgg ? 'font-fantastical-fusion' : '';
+                
                 let imageBlockHtml;
                 if(isFusion || isEasterEgg) {
                     imageBlockHtml = `<div class="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage(event, '${item.imageUrl}')"><img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover"></div>`;
@@ -183,15 +200,51 @@
                     const thumbClass = "w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-black/20 border border-white/10 flex items-center justify-center", placeholderClass = "text-sm font-bold text-gray-500", imgClass = "w-full h-full object-cover cursor-zoom-in";
                     imageBlockHtml = `<div class="flex items-center gap-3"><div class="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage(event, '${item.imageUrl}')"><img src="${item.imageUrl}" alt="${item.name} 1★" class="${imgClass}"></div><div class="flex flex-col gap-1.5"><div class="${thumbClass}" onclick="${evo2 ? `enlargeImage(event, '${evo2.imageUrl}')` : ''}">${evo2 ? `<img src="${evo2.imageUrl}" alt="${item.name} 2★" class="${imgClass}">` : `<span class="${placeholderClass}">2★</span>`}</div><div class="${thumbClass}" onclick="${evo3 ? `enlargeImage(event, '${evo3.imageUrl}')` : ''}">${evo3 ? `<img src="${evo3.imageUrl}" alt="${item.name} 3★" class="${imgClass}">` : `<span class="${placeholderClass}">3★</span>`}</div></div></div>`;
                 }
+                
                 let starHtml;
                 if(isFusion) starHtml = getStarEmojis(true, 4); else if (isEasterEgg) starHtml = getStarEmojis(false, 1, 'auto_awesome'); else starHtml = getStarEmojis(false, 1);
-                card.innerHTML = `${imageBlockHtml}<div class="flex-grow"><h4 class="font-bold text-lg truncate ${nameClass}">${item.name}</h4><p class="text-sm text-gray-400">ID: ${item.id}</p><div class="flex mt-1">${starHtml}</div></div><div class="flex-shrink-0 flex gap-2"><button class="icon-button edit-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" aria-label="Düzenle"><span class="material-symbols-outlined">edit</span></button><button class="icon-button delete-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" aria-label="Sil"><span class="material-symbols-outlined">delete</span></button></div>`;
+
+                // YENİ: Emekli karakterler için farklı buton seti oluşturuluyor
+                let actionButtonsHtml;
+                if (isRetired) {
+                    actionButtonsHtml = `
+                        <button class="icon-button retire-button" data-id="${item.id}" data-type="${item.type}" data-action="unretire" aria-label="Geri Al">
+                            <span class="material-symbols-outlined">settings_backup_restore</span>
+                        </button>
+                        <button class="icon-button delete-button" data-id="${item.id}" data-type="${item.type}" aria-label="Kalıcı Olarak Sil">
+                            <span class="material-symbols-outlined">delete_forever</span>
+                        </button>`;
+                } else {
+                    actionButtonsHtml = `
+                        <button class="icon-button retire-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" data-action="retire" aria-label="Emekliye Ayır">
+                            <span class="material-symbols-outlined">work_history</span>
+                        </button>
+                        <button class="icon-button edit-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" aria-label="Düzenle">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="icon-button delete-button" data-id="${item.id}" data-type="${isFusion ? 'fusion' : (isEasterEgg ? 'easterEgg' : 'character')}" aria-label="Sil">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>`;
+                }
+
+                // YENİ: Emekli ise "Emekli" yazısı ekleniyor
+                const retiredBadge = isRetired ? `<p class="text-xs font-bold mt-1" style="color: var(--md-sys-color-warning);">EMEKLİ</p>` : '';
+
+                card.innerHTML = `${imageBlockHtml}
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-lg truncate ${nameClass}">${item.name}</h4>
+                        <p class="text-sm text-gray-400">ID: ${item.id}</p>
+                        <div class="flex mt-1">${starHtml}</div>
+                        ${retiredBadge}
+                    </div>
+                    <div class="flex-shrink-0 flex flex-col gap-1">
+                        ${actionButtonsHtml}
+                    </div>`;
                 dom.adminGrid.appendChild(card);
             });
-            setupEditDeleteListeners();
+            setupActionListeners(); // Listener fonksiyonunun adı güncellendi
         }
         
-        // DEĞİŞİKLİK BURADA: resetForm fonksiyonuna buton aktivasyonu eklendi
         function resetForm() {
             dom.addEditForm.reset(); 
             editingItemId = null; 
@@ -201,15 +254,11 @@
             dom.addEditForm.elements['id'].readOnly = false;
             dom.saveButton.textContent = "Kaydet";
             dom.cancelButton.classList.add('hidden');
-            
-            // SON HATA DÜZELTMESİ: Kaydet butonunu tekrar aktif et
             dom.saveButton.disabled = false;
-
             const form = dom.addEditForm;
             form.elements['imageFile'].value = '';
             form.elements['evolutions_1_file'].value = '';
             form.elements['evolutions_2_file'].value = '';
-
             toggleFormFields();
             document.getElementById('temp-url-container')?.remove();
             ['imageFile', 'evolutions_1_file', 'evolutions_2_file'].forEach(name => {
@@ -263,7 +312,6 @@
             dom.addEditFormContainer.classList.add('hidden');
         });
 
-        // Diğer fonksiyonlar (değişiklik yok)
         toggleFormFields = function() {
             const selectedType = dom.itemTypeSelect.value;
             dom.addEditForm.querySelector('#character-fields').classList.toggle('hidden', selectedType !== 'character');
@@ -271,19 +319,34 @@
             dom.addEditForm.querySelector('#easter-egg-fields').classList.toggle('hidden', selectedType !== 'easterEgg');
             dom.addEditForm.querySelector('[name="imageFile"]').parentElement.querySelector('label').textContent = selectedType === 'easterEgg' ? 'Easter Egg Resim' : 'Ana Resim';
         };
-        setupEditDeleteListeners = function() {
-            dom.adminGrid.querySelectorAll('.edit-button, .delete-button').forEach(button => {
+
+        // YENİ: Fonksiyon adı ve içeriği tüm butonları (edit, delete, retire) kapsayacak şekilde güncellendi
+        setupActionListeners = function() {
+            dom.adminGrid.querySelectorAll('.edit-button, .delete-button, .retire-button').forEach(button => {
                 button.addEventListener('click', (e) => {
-                    const { id, type } = e.currentTarget.dataset;
-                    if (button.classList.contains('edit-button')) loadItemForEdit(id, type);
-                    else deleteItem(id, type);
+                    const { id, type, action } = e.currentTarget.dataset;
+                    if (button.classList.contains('edit-button')) {
+                        loadItemForEdit(id, type);
+                    } else if (button.classList.contains('delete-button')) {
+                        deleteItem(id, type);
+                    } else if (button.classList.contains('retire-button')) {
+                        // YENİ: Emekliye ayırma veya geri alma işlemi
+                        if (action === 'retire') {
+                            retireItem(id, type);
+                        } else if (action === 'unretire') {
+                            unretireItem(id, type);
+                        }
+                    }
                 });
             });
         };
+
         loadItemForEdit = function(itemId, itemType) {
             resetForm();
+            // YENİ: Emekli karakterler düzenlenemez
             const itemData = (itemType === 'easterEgg' ? easterEggs : characters).find(i => i.id === itemId);
-            if (!itemData) return alert("Kayıt bulunamadı.");
+            if (!itemData) return alert("Aktif kayıt bulunamadı veya bu kayıt düzenlenemez.");
+            
             editingItemId = itemId; editingItemType = itemType;
             dom.formTitle.textContent = "Kaydı Düzenle";
             dom.itemTypeSelect.value = itemType; dom.itemTypeSelect.disabled = true;
@@ -370,9 +433,12 @@
             } catch (error) { alert(`Hata: ${error.message}`); } finally { dom.saveButton.textContent = isEditing ? 'Güncelle' : 'Kaydet'; dom.saveButton.disabled = false; }
         };
         deleteItem = async function(itemId, itemType) {
-            const collectionName = itemType === 'easterEgg' ? 'easterEggs' : 'characters';
-            const item = (collectionName === 'easterEggs' ? easterEggs : characters).find(i => i.id === itemId);
-            if (!item || !confirm(`'${item.name}' adlı kaydı silmek istediğinizden emin misiniz?`)) return;
+            // YENİ: Silme işlemi emekli ve aktif karakterler için ayrı koleksiyonlardan yapılıyor
+            const isRetired = dismissed.some(i => i.id === itemId);
+            const collectionName = isRetired ? 'dismissed' : (itemType === 'easterEgg' ? 'easterEggs' : 'characters');
+            const item = [...characters, ...easterEggs, ...dismissed].find(i => i.id === itemId);
+
+            if (!item || !confirm(`'${item.name}' adlı kaydı ${isRetired ? 'KALICI OLARAK' : ''} silmek istediğinizden emin misiniz?`)) return;
             try {
                 if(!firebase.auth().currentUser) return alert("Giriş yapmalısınız.");
                 await db.collection(collectionName).doc(itemId).delete();
@@ -380,13 +446,78 @@
                 await fetchItems();
             } catch (error) { alert(`Silme hatası: ${error.message}`); }
         };
+
+        // YENİ: Karakteri emekliye ayırma fonksiyonu
+        retireItem = async function(itemId, itemType) {
+            if (!confirm("Bu kaydı emekliye ayırmak istediğinizden emin misiniz? Liste görünümünde kalacak ama düzenlenemeyecektir.")) return;
+            if(!firebase.auth().currentUser) return alert("Giriş yapmalısınız.");
+
+            const sourceCollection = itemType === 'easterEgg' ? 'easterEggs' : 'characters';
+            const itemRef = db.collection(sourceCollection).doc(itemId);
+            
+            try {
+                const doc = await itemRef.get();
+                if (!doc.exists) throw new Error("Taşınacak kayıt bulunamadı.");
+                
+                const itemData = doc.data();
+                // Veriyi 'dismissed' koleksiyonuna yazarken hangi tür olduğunu da ekliyoruz
+                await db.collection('dismissed').doc(itemId).set({ ...itemData, type: itemType });
+                // Eski koleksiyondan siliyoruz
+                await itemRef.delete();
+
+                alert("Kayıt başarıyla emekliye ayrıldı.");
+                await fetchItems(); // Listeyi yenile
+            } catch (error) {
+                alert(`Emekliye ayırma hatası: ${error.message}`);
+            }
+        };
+
+        // YENİ: Karakteri emeklilikten geri alma fonksiyonu
+        unretireItem = async function(itemId, itemType) {
+            if (!confirm("Bu kaydı tekrar aktif hale getirmek istediğinizden emin misiniz?")) return;
+            if(!firebase.auth().currentUser) return alert("Giriş yapmalısınız.");
+            
+            const dismissedRef = db.collection('dismissed').doc(itemId);
+
+            try {
+                const doc = await dismissedRef.get();
+                if (!doc.exists) throw new Error("Geri alınacak kayıt bulunamadı.");
+
+                let itemData = doc.data();
+                const originalType = itemData.type || 'character'; // Eğer tip belirtilmemişse varsayılan olarak character
+                const destinationCollection = originalType === 'easterEgg' ? 'easterEggs' : 'characters';
+                
+                delete itemData.type; // 'type' alanını geri taşırken silebiliriz.
+
+                // Veriyi orijinal koleksiyonuna geri yaz
+                await db.collection(destinationCollection).doc(itemId).set(itemData);
+                // 'dismissed' koleksiyonundan sil
+                await dismissedRef.delete();
+
+                alert("Kayıt tekrar aktifleştirildi.");
+                await fetchItems(); // Listeyi yenile
+            } catch (error) {
+                alert(`Geri alma hatası: ${error.message}`);
+            }
+        };
+
+        // YENİ: fetchItems fonksiyonu 'dismissed' koleksiyonunu da çekecek şekilde güncellendi
         fetchItems = async function() {
             try {
-                const [charsSnap, eeSnap] = await Promise.all([db.collection('characters').get(), db.collection('easterEggs').get()]);
+                const [charsSnap, eeSnap, dismissedSnap] = await Promise.all([
+                    db.collection('characters').get(), 
+                    db.collection('easterEggs').get(),
+                    db.collection('dismissed').get() // Emekli olanları da çek
+                ]);
                 characters = charsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 easterEggs = eeSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Emekli olanları ayrı bir dizide tut ve onlara bir işaret ekle
+                dismissed = dismissedSnap.docs.map(doc => ({ id: doc.id, ...doc.data(), isRetired: true }));
                 renderAdminPanel();
-            } catch (error) { dom.adminGrid.innerHTML = `<p class="col-span-full text-center text-lg text-red-500">Veriler çekilemedi.</p>`; }
+            } catch (error) { 
+                console.error("Veri çekme hatası:", error);
+                dom.adminGrid.innerHTML = `<p class="col-span-full text-center text-lg text-red-500">Veriler çekilemedi. Lütfen konsolu kontrol edin.</p>`; 
+            }
         };
         enlargeImage = function(event, src) { if(event) event.stopPropagation(); if(src) {dom.enlargedImage.src = src; dom.enlargedImageOverlay.classList.remove('hidden');} };
         closeEnlargedImage = function(event) { if (event) event.stopPropagation(); dom.enlargedImageOverlay.classList.add('hidden'); };
