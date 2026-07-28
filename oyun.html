@@ -207,8 +207,12 @@
                             <span class="material-symbols-outlined chip-icon">apps</span>All
                         </label>
                         <label class="mode-chip">
+                            <input type="radio" name="mode" value="characters">
+                            <span class="material-symbols-outlined chip-icon text-amber-400">person</span>Characters
+                        </label>
+                        <label class="mode-chip">
                             <input type="radio" name="mode" value="fusions">
-                            <span class="material-symbols-outlined chip-icon text-fuchsia-400">auto_awesome</span>Fusions
+                            <span class="material-symbols-outlined chip-icon text-fuchsia-400">merge_type</span>Fusions
                         </label>
                         <label class="mode-chip" style="grid-column:span 2">
                             <input type="radio" name="mode" value="absolute_war">
@@ -350,12 +354,12 @@
 <script>
 // ─── Firebase ─────────────────────────────────────────────────────────────────
 const firebaseConfig = {
-    apiKey: "AIzaSyADZZj-DKnKWEmlrAVyuphkIUJiC8yf2DM",
-  authDomain: "krktrvrn.firebaseapp.com",
-  projectId: "krktrvrn",
-  storageBucket: "krktrvrn.firebasestorage.app",
-  messagingSenderId: "181337949458",
-  appId: "1:181337949458:web:739e0d2e61cbb1c22f1fcb"
+  apiKey: "AIzaSyB9k0hRVz_by2Jl3BsH2NbnwiHX-HKCwNs",
+  authDomain: "karaktergalerisiv2.firebaseapp.com",
+  projectId: "karaktergalerisiv2",
+  storageBucket: "karaktergalerisiv2.firebasestorage.app",
+  messagingSenderId: "530517152354",
+  appId: "1:530517152354:web:af0f4efedba4597554f73b"
 };
 firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
@@ -513,61 +517,42 @@ function prepareContestants(settings) {
     // Helper: pick the correct image for a fusion (previewUrl = static image, imageUrl = GIF fallback)
     const fusionImg = (char) => char.previewUrl || char.imageUrl || '';
 
+    // Helper: build a contestant entry (fusions get a "Fusion" label)
+    const toContestant = (char) => ({
+        id: char.id,
+        name: char.name,
+        label: char.isFusion ? 'Fusion' : null,
+        imageUrl: char.isFusion ? fusionImg(char) : (char.imageUrl || ''),
+    });
+
     if (mode.startsWith('au_')) {
         // AU mode: only chars/fusions that have an entry in this AU
         const auId = mode.slice(3);
         const auDef = alternativeUniverses.find(a => a.id === auId);
         sourceList.forEach(char => {
             const entry = char.auData?.[auId];
-            if (!entry) return;
-            if (char.isFusion) {
-                if (entry.fusionImageUrl) {
-                    pool.push({
-                        id: `${char.id}_au_${auId}`,
-                        name: char.name,
-                        label: '4★',
-                        imageUrl: entry.fusionImageUrl,
-                        auName: auDef?.name,
-                        auColor: auDef?.color,
-                    });
-                }
-            } else {
-                const auImg = entry.starImageUrl || entry.star3ImageUrl;
-                if (auImg) {
-                    pool.push({
-                        id: `${char.id}_au_${auId}`,
-                        name: char.name,
-                        label: '★',
-                        imageUrl: auImg,
-                        auName: auDef?.name,
-                        auColor: auDef?.color,
-                    });
-                }
-            }
+            if (!entry?.imageUrl) return;
+            pool.push({
+                id: `${char.id}_au_${auId}`,
+                name: char.name,
+                label: char.isFusion ? 'Fusion' : null,
+                imageUrl: entry.imageUrl,
+                auName: auDef?.name,
+                auColor: auDef?.color,
+            });
         });
 
     } else if (mode === 'fusions') {
-        sourceList.filter(c => c.isFusion).forEach(char => {
-            pool.push({ id: char.id, name: char.name, label: '★', imageUrl: fusionImg(char) });
-        });
+        pool = sourceList.filter(c => c.isFusion).map(toContestant);
+
+    } else if (mode === 'characters') {
+        pool = sourceList.filter(c => !c.isFusion && c.imageUrl).map(toContestant);
 
     } else if (mode === 'all') {
-        sourceList.forEach(char => {
-            if (char.isFusion) {
-                pool.push({ id: char.id, name: char.name, label: '★', imageUrl: fusionImg(char) });
-            } else if (char.imageUrl) {
-                pool.push({ id: char.id, name: char.name, label: '★', imageUrl: char.imageUrl });
-            }
-        });
+        pool = sourceList.filter(c => c.isFusion || c.imageUrl).map(toContestant);
 
     } else if (mode === 'random') {
-        sourceList.forEach(char => {
-            if (char.isFusion) {
-                pool.push({ id: char.id, name: char.name, label: '★', imageUrl: fusionImg(char) });
-            } else if (char.imageUrl) {
-                pool.push({ id: char.id, name: char.name, label: '★', imageUrl: char.imageUrl });
-            }
-        });
+        pool = sourceList.filter(c => c.isFusion || c.imageUrl).map(toContestant);
         pool.sort(() => Math.random() - 0.5);
         pool = pool.slice(0, settings.count || 16);
     }
@@ -597,7 +582,7 @@ function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 function startAbsoluteWarStage() {
     const stage = gameState.absoluteWar.stage;
     let pool, stageName;
-    const stageMap = { 1: ['all','Characters Battle'], 2: ['fusions','Fusions Battle'] };
+    const stageMap = { 1: ['characters','Characters Battle'], 2: ['fusions','Fusions Battle'] };
     if (stageMap[stage]) {
         const [modeKey, name] = stageMap[stage];
         stageName = name;
@@ -607,7 +592,7 @@ function startAbsoluteWarStage() {
         pool = [...gameState.absoluteWar.allWinners];
     }
     if (pool.length < 2) {
-        if (stage < 5) { gameState.absoluteWar.stage++; startAbsoluteWarStage(); return; }
+        if (stage < 3) { gameState.absoluteWar.stage++; startAbsoluteWarStage(); return; }
         alert('No contestants for Absolute War!'); showScreen('setup'); return;
     }
     gameState.currentStageName = stageName;
@@ -703,7 +688,7 @@ function advanceGame() {
 
     if (next.length === 1) {
         // Tournament winner
-        if (gameState.settings.mode === 'absolute_war' && gameState.absoluteWar.stage < 5) {
+        if (gameState.settings.mode === 'absolute_war' && gameState.absoluteWar.stage < 3) {
             gameState.absoluteWar.allWinners.push(next[0]);
             gameState.absoluteWar.stage++;
             startAbsoluteWarStage();

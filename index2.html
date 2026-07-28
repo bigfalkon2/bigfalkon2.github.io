@@ -217,6 +217,41 @@
             50% { opacity: 1; }
         }
 
+        /* ── Modern image upload cards ── */
+        .img-card { background:var(--surface-high); border:1.5px solid var(--outline-var); border-radius:16px; padding:14px; display:flex; flex-direction:column; gap:10px; transition:border-color 0.2s; }
+        .img-card:hover { border-color:rgba(var(--primary-rgb),.5); }
+        .img-card-header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+        .img-card-title { font-size:.875rem; font-weight:700; color:var(--on-surface); }
+        .img-method-select { padding:5px 8px !important; font-size:.75rem !important; border-radius:8px !important; width:auto !important; min-width:80px; background:var(--surface-container,#201f25); }
+        .img-drop-zone { display:block; cursor:pointer; border-radius:10px; overflow:hidden; position:relative; border:2px dashed var(--outline-var); transition:border-color 0.2s, background 0.2s; }
+        .img-drop-zone:hover { border-color:var(--primary); background:rgba(var(--primary-rgb),.04); }
+        .img-drop-zone.drag-over { border-color:var(--primary); border-style:solid; background:rgba(var(--primary-rgb),.1); }
+        .img-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; height:200px; color:var(--on-surface-var); font-size:.8rem; }
+        .img-placeholder .material-symbols-outlined { font-size:38px; opacity:.45; }
+        .img-preview { position:relative; }
+        .img-preview-edit { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.5); opacity:0; transition:opacity 0.2s; color:#fff; }
+        .img-preview-edit .material-symbols-outlined { font-size:28px; }
+        .img-drop-zone:hover .img-preview-edit { opacity:1; }
+        /* Natural-size preview: fixed height, full image visible */
+        .img-natural { width:100%; height:200px; object-fit:contain; display:block; background:rgba(0,0,0,.25); }
+        /* Focus row */
+        .img-focus-row { display:flex; flex-direction:column; gap:6px; padding-top:8px; border-top:1px solid var(--outline-var); }
+        .img-focus-header { display:flex; justify-content:space-between; font-size:.72rem; color:var(--on-surface-var); }
+        .img-focus-header .focus-val-label { color:var(--primary); font-weight:700; }
+        .img-focus-slider-row { display:flex; align-items:center; gap:10px; }
+        .focus-slider { flex:1; cursor:pointer; }
+        .img-focus-tip { font-size:.68rem; color:var(--on-surface-var); flex-shrink:0; }
+        .img-focus-hint { font-size:.7rem; color:var(--on-surface-var); }
+        /* Crop preview box: 2:3 ratio, prominent */
+        .img-crop-preview-wrap { width:84px; height:126px; flex-shrink:0; border-radius:8px; overflow:hidden; border:2px solid var(--primary); background:var(--surface-container,#201f25); }
+        @media (min-width: 1280px) {
+            .img-crop-preview-wrap { width:96px; height:144px; }
+        }
+        /* Image cards grid: 1 col on phones, 2 on tablets, 3 on wide screens */
+        #image-cards-grid { display:grid; grid-template-columns:1fr; gap:1rem; align-items:start; }
+        @media (min-width: 640px)  { #image-cards-grid { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+        @media (min-width: 1280px) { #image-cards-grid { grid-template-columns:repeat(3, minmax(0,1fr)); } }
+
         /* Scrollbars */
         .modal-content::-webkit-scrollbar, #selector-grid::-webkit-scrollbar, #qp-content::-webkit-scrollbar { width: 6px; }
         .modal-content::-webkit-scrollbar-track, #selector-grid::-webkit-scrollbar-track, #qp-content::-webkit-scrollbar-track { background: transparent; }
@@ -232,6 +267,19 @@
             white-space: nowrap;
         }
         #cache-toast.hidden { opacity: 0; transform: translateX(-50%) translateY(12px); pointer-events: none; }
+        /* ── App toast (save/delete feedback) ── */
+        #app-toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: var(--surface-high); border: 1px solid var(--outline-var);
+            border-radius: 12px; padding: 10px 18px; z-index: 1200;
+            display: flex; align-items: center; gap: 8px; font-size: .875rem; font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
+            transition: opacity .25s, transform .25s;
+            max-width: 90vw;
+        }
+        #app-toast.hidden { opacity: 0; transform: translateX(-50%) translateY(12px); pointer-events: none; }
+        #app-toast.toast-success #app-toast-icon { color: var(--success); }
+        #app-toast.toast-error   #app-toast-icon { color: var(--danger); }
         #cache-toast .toast-bar {
             width: 120px; height: 4px; border-radius: 2px; background: var(--outline-var); overflow: hidden;
         }
@@ -344,12 +392,6 @@
             <div class="stat-label">Images</div>
             <div class="stat-sub" id="stat-images-sub"></div>
         </div>
-        <div class="stat-card skeleton" style="--stat-color: rgb(var(--success-rgb))">
-            <span class="material-symbols-outlined stat-icon">content_paste</span>
-            <div class="stat-value" id="stat-evos">—</div>
-            <div class="stat-label">Full Sets</div>
-            <div class="stat-sub" id="stat-evos-sub"></div>
-        </div>
     </div>
 
     <!-- TAB BAR -->
@@ -381,6 +423,7 @@
                 <button class="chip selected" data-type-filter="all">All</button>
                 <button class="chip" data-type-filter="character">Character</button>
                 <button class="chip" data-type-filter="fusion">Fusion</button>
+                <button class="chip" data-type-filter="nofusion" title="Characters that are not part of any fusion">No Fusion</button>
                 <button class="chip" data-type-filter="retired">Retired</button>
                 <span style="width:1px;height:18px;background:var(--outline-var);flex-shrink:0;margin:0 2px;"></span>
                 <select id="irk-filter" class="form-select flex-shrink-0" style="width:auto;min-width:90px;padding:6px 8px;font-size:0.8rem;">
@@ -388,7 +431,6 @@
                 </select>
                 <select id="view-filter" class="form-select flex-shrink-0" style="width:auto;padding:6px 8px;font-size:0.8rem;">
                     <option value="all">Reports…</option>
-                    <option value="available">Available</option>
                     <option value="preview-report">Preview</option>
                     <option value="character-report">Characters</option>
                 </select>
@@ -439,33 +481,14 @@
                 <input type="text" name="irk" id="irk-input" placeholder="Race (optional)" class="form-input" list="irk-datalist" autocomplete="off">
                 <datalist id="irk-datalist"></datalist>
 
-                <div id="fusion-preview-image-field" class="hidden flex flex-col gap-3">
-                    <div id="preview-image-container">
-                        <label class="block text-sm font-medium mb-1">Main Fusion Image (PNG/JPG)</label>
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <select class="form-select sm:w-1/3 image-upload-method"><option value="imgbb">ImgBB Upload</option><option value="imgbb2">ImgBB 2 Upload</option><option value="vgy">VGY.ME Upload</option><option value="link">Direct Link</option></select>
-                            <input type="file" name="fusion_preview_file" class="form-input flex-grow image-upload-file" accept="image/*">
-                            <input type="text" name="previewUrl" placeholder="https://..." class="form-input flex-grow image-upload-link hidden">
-                        </div>
-                        <div class="img-preview hidden mt-2"><img class="h-20 w-auto rounded-lg object-cover border" style="border-color:var(--outline-var);"></div>
+                <!-- Image cards: 1 col on phones, 2 on tablets, 3 on wide screens -->
+                <div id="image-cards-grid">
+                    <div id="fusion-preview-image-field" style="display:none;">
+                        <div id="preview-image-container" data-imgcard='{"title":"Fusion Ana Görseli","file":"fusion_preview_file","link":"previewUrl","focus":true}'></div>
                     </div>
-                </div>
 
-                <div id="main-image-container">
-                    <label class="block text-sm font-medium mb-1">Main Image</label>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <select class="form-select sm:w-1/3 image-upload-method">
-                            <option value="imgbb">ImgBB Upload</option>
-                            <option value="vgy">VGY.ME Upload</option>
-                            <option value="link">Direct Link</option>
-                        </select>
-                        <input type="file" name="imageFile" class="form-input flex-grow image-upload-file" accept="image/*">
-                        <input type="text" name="imageUrl" placeholder="https://..." class="form-input flex-grow image-upload-link hidden">
-                    </div>
-                    <div class="img-preview hidden mt-2"><img class="h-20 w-auto rounded-lg object-cover border" style="border-color:var(--outline-var);"></div>
+                    <div id="main-image-container" data-imgcard='{"title":"Ana Görsel","file":"imageFile","link":"imageUrl","focus":true}'></div>
                 </div>
-
-                <div id="character-fields" class="flex flex-col gap-3"></div>
 
                 <div id="fusion-fields" class="hidden flex flex-col gap-3">
                     <div class="character-selector-wrapper">
@@ -479,12 +502,12 @@
                 </div>
                 <div id="prompt-management-section" class="hidden">
                     <h3 class="prompt-section-header">Prompt Management</h3>
-                    <div id="prompt-block-1" class="prompt-block hidden" data-level="1">
-                        <div class="prompt-label"><span>★ Prompt</span><span class="saved-indicator"><span class="material-symbols-outlined text-sm">check_circle</span> Saved</span></div>
-                        <input type="text" id="prompt-title-1" class="form-input mb-2 text-sm" placeholder="Prompt Title (Optional)">
-                        <textarea id="prompt-text-1" class="form-input text-sm font-mono" rows="4" placeholder="Enter prompt text here..."></textarea>
+                    <div id="prompt-block-KARAKTER" class="prompt-block hidden" data-level="KARAKTER">
+                        <div class="prompt-label"><span>Karakter Promptu</span><span class="saved-indicator"><span class="material-symbols-outlined text-sm">check_circle</span> Saved</span></div>
+                        <input type="text" id="prompt-title-KARAKTER" class="form-input mb-2 text-sm" placeholder="Prompt Title (Optional)">
+                        <textarea id="prompt-text-KARAKTER" class="form-input text-sm font-mono" rows="4" placeholder="Enter prompt text here..."></textarea>
                         <div class="text-right text-xs mt-1 prompt-char-count" style="color:var(--on-surface-var);"></div>
-                        <input type="hidden" id="prompt-docId-1">
+                        <input type="hidden" id="prompt-docId-KARAKTER">
                     </div>
                     <div id="prompt-block-FUSION" class="prompt-block hidden" data-level="FUSION">
                         <div class="prompt-label"><span class="text-fuchsia-400">Fusion Prompt</span><span class="saved-indicator"><span class="material-symbols-outlined text-sm">check_circle</span> Saved</span></div>
@@ -570,6 +593,12 @@
             <p id="login-status" class="mt-2 text-center text-red-400 h-5"></p>
         </div>
     </div>
+</div>
+
+<!-- APP TOAST -->
+<div id="app-toast" class="hidden toast-success">
+    <span id="app-toast-icon" class="material-symbols-outlined" style="font-size:20px;">check_circle</span>
+    <span id="app-toast-text"></span>
 </div>
 
 <!-- ENLARGED IMAGE -->
@@ -810,29 +839,8 @@
         </div>
 
         <div id="au-entry-image-fields" class="flex flex-col gap-4">
-            <!-- AU image for characters -->
-            <div id="au-star3-field">
-                <label class="block text-sm font-medium mb-1">AU Image <span class="text-xs text-gray-400">(character alternative)</span></label>
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <select class="form-select sm:w-1/3 image-upload-method"><option value="imgbb">ImgBB Upload</option><option value="imgbb2">ImgBB 2 Upload</option><option value="vgy">VGY.ME Upload</option><option value="link">Direct Link</option></select>
-                    <input type="file" class="form-input flex-grow image-upload-file" id="au-star3-file">
-                    <input type="text" class="form-input flex-grow image-upload-link hidden" id="au-star3-link" placeholder="https://...">
-                </div>
-                <div id="au-star3-preview-wrap" class="mt-2 hidden">
-                    <img id="au-star3-preview" src="" alt="" class="h-24 object-contain rounded-lg border border-gray-700 cursor-zoom-in" onclick="enlargeImage(this.src)">
-                </div>
-            </div>
-            <!-- Fusion image -->
-            <div id="au-fusion-field" class="hidden">
-                <label class="block text-sm font-medium mb-1">Fusion AU Image <span class="text-xs text-gray-400">(replaces GIF preview)</span></label>
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <select class="form-select sm:w-1/3 image-upload-method"><option value="imgbb">ImgBB Upload</option><option value="imgbb2">ImgBB 2 Upload</option><option value="vgy">VGY.ME Upload</option><option value="link">Direct Link</option></select>
-                    <input type="file" class="form-input flex-grow image-upload-file" id="au-fusion-file">
-                    <input type="text" class="form-input flex-grow image-upload-link hidden" id="au-fusion-link" placeholder="https://...">
-                </div>
-                <div id="au-fusion-preview-wrap" class="mt-2 hidden">
-                    <img id="au-fusion-preview" src="" alt="" class="h-24 object-contain rounded-lg border border-gray-700 cursor-zoom-in" onclick="enlargeImage(this.src)">
-                </div>
+            <div id="au-image-field">
+                <div id="au-image-card" data-imgcard='{"title":"AU Görseli","focus":true}'></div>
             </div>
 
             <div>
@@ -850,13 +858,163 @@
 </div>
 
 <script>
+// ─── Shared image-card component ──────────────────────────────────────────────
+// Single source for every image input card (character form + AU entry modal).
+const IMG_METHODS = [['imgbb','ImgBB'],['imgbb2','ImgBB 2'],['vgy','VGY.ME'],['link','Link']];
+
+function imgCardInnerHTML(opts) {
+    const methods = IMG_METHODS.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+    const focusRow = opts.focus ? `
+        <div class="img-focus-row">
+            <div class="img-focus-header"><span>Yatay Odak</span><span class="focus-val-label">Merkez</span></div>
+            <div class="img-focus-slider-row">
+                <div class="img-crop-preview-wrap"><img class="img-crop-preview" alt="" src="" style="width:100%;height:100%;object-fit:cover;object-position:50% center;transition:object-position .15s ease;display:none;"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+                    <div style="display:flex;align-items:center;gap:6px;"><span class="img-focus-tip">◀</span><input type="range" class="focus-slider" min="0" max="100" value="50" style="flex:1;accent-color:var(--primary);"><span class="img-focus-tip">▶</span></div>
+                    <p class="img-focus-hint">Galeri kırpma önizlemesi için görsel seçin.</p>
+                </div>
+            </div>
+            <input type="hidden" class="focus-hidden" value="50% center">
+        </div>` : '';
+    return `
+        <div class="img-card-header">
+            <span class="img-card-title">${opts.title}</span>
+            <select class="image-upload-method img-method-select">${methods}</select>
+        </div>
+        <label class="img-drop-zone">
+            <input type="file"${opts.file ? ` name="${opts.file}"` : ''} class="image-upload-file sr-only" accept="image/*">
+            <div class="img-placeholder"><span class="material-symbols-outlined">add_photo_alternate</span><span>Seç, sürükle ya da Ctrl+V</span></div>
+            <div class="img-preview hidden"><img alt="" class="img-natural"><div class="img-preview-edit"><span class="material-symbols-outlined">edit</span></div></div>
+        </label>
+        <input type="text"${opts.link ? ` name="${opts.link}"` : ''} class="form-input image-upload-link hidden" style="margin-top:4px;" placeholder="https://...">${focusRow}`;
+}
+
+function initImgCards() {
+    document.querySelectorAll('[data-imgcard]').forEach(el => {
+        if (el.dataset.imgcardDone) return;
+        el.dataset.imgcardDone = '1';
+        el.classList.add('img-card');
+        el.innerHTML = imgCardInnerHTML(JSON.parse(el.dataset.imgcard));
+    });
+}
+initImgCards();
+
+// ─── App toast ────────────────────────────────────────────────────────────────
+let _appToastTimer;
+function showAppToast(msg, type = 'success') {
+    const t = document.getElementById('app-toast');
+    if (!t) { (type === 'error' ? console.error : console.log)(msg); return; }
+    document.getElementById('app-toast-text').textContent = msg;
+    document.getElementById('app-toast-icon').textContent = type === 'error' ? 'error' : 'check_circle';
+    t.classList.remove('toast-success','toast-error');
+    t.classList.add(type === 'error' ? 'toast-error' : 'toast-success');
+    t.classList.remove('hidden');
+    clearTimeout(_appToastTimer);
+    _appToastTimer = setTimeout(() => t.classList.add('hidden'), type === 'error' ? 5000 : 2600);
+}
+
+// ─── Turkish-insensitive search fold ──────────────────────────────────────────
+const foldTr = s => (s || '').toLocaleLowerCase('tr')
+    .replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ü/g,'u')
+    .replace(/ş/g,'s').replace(/ö/g,'o').replace(/ç/g,'c');
+const trMatch = (text, q) => foldTr(text).includes(foldTr(q));
+
+// ─── Drag & drop + clipboard paste for image cards ────────────────────────────
+function setCardFile(card, file) {
+    if (!card || !file || !file.type.startsWith('image/')) return;
+    const sel = card.querySelector('.image-upload-method');
+    const fileInput = card.querySelector('.image-upload-file');
+    if (!sel || !fileInput) return;
+    if (sel.value === 'link') {
+        sel.value = 'imgbb';
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+let _pasteTargetCard = null;
+function setupDropZones() {
+    document.querySelectorAll('.img-drop-zone').forEach(zone => {
+        if (zone.dataset.dnd) return;
+        zone.dataset.dnd = '1';
+        zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            const file = [...(e.dataTransfer?.files || [])].find(f => f.type.startsWith('image/'));
+            if (file) setCardFile(zone.closest('.img-card'), file);
+        });
+    });
+}
+document.addEventListener('pointerover', e => {
+    const card = e.target.closest?.('.img-card');
+    if (card) _pasteTargetCard = card;
+});
+document.addEventListener('paste', e => {
+    const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+    if (!item) return;
+    const card = _pasteTargetCard;
+    if (!card || !card.offsetParent) return;
+    e.preventDefault();
+    setCardFile(card, item.getAsFile());
+    showAppToast('Görsel panodan eklendi');
+});
+
+// ─── Per-card focus sliders ───────────────────────────────────────────────────
+function initFocusSliders() {
+    document.querySelectorAll('.img-card .focus-slider').forEach(slider => {
+        if (slider.dataset.init) return;
+        slider.dataset.init = '1';
+        slider.addEventListener('input', () => _applyCardFocus(slider.closest('.img-card'), parseInt(slider.value, 10)));
+    });
+}
+
+function _applyCardFocus(card, pct) {
+    if (!card) return;
+    const hidden   = card.querySelector('.focus-hidden');
+    const lbl      = card.querySelector('.focus-val-label');
+    const cropImg  = card.querySelector('.img-crop-preview');
+    if (hidden) hidden.value = `${pct}% center`;
+    if (lbl) lbl.textContent = pct === 50 ? 'Merkez' : pct < 50 ? `Sol ${pct}%` : `Sağ ${pct}%`;
+    if (cropImg) cropImg.style.objectPosition = `${pct}% center`;
+}
+
+function setCardFocus(card, value) {
+    if (!card) return;
+    const slider = card.querySelector('.focus-slider');
+    if (!slider) return;
+    let pct = 50;
+    if (value) {
+        const m = value.match(/^(\d+)%/);
+        if (m) pct = parseInt(m[1], 10);
+        else if (/^left/.test(value)) pct = 0;
+        else if (/^right/.test(value)) pct = 100;
+    }
+    slider.value = pct;
+    _applyCardFocus(card, pct);
+}
+
+function getCardFocusValue(card) {
+    const v = card?.querySelector('.focus-hidden')?.value;
+    return v || '50% center';
+}
+
+// Legacy shims (still called by resetForm / loadItemForEdit)
+function buildFocusGrid() { initFocusSliders(); }
+function setFocusCell(v) { setCardFocus(document.getElementById('main-image-container'), v); }
+function getFocusValue() { return getCardFocusValue(document.getElementById('main-image-container')); }
+
 const firebaseConfig = {
-    apiKey: "AIzaSyADZZj-DKnKWEmlrAVyuphkIUJiC8yf2DM",
-  authDomain: "krktrvrn.firebaseapp.com",
-  projectId: "krktrvrn",
-  storageBucket: "krktrvrn.firebasestorage.app",
-  messagingSenderId: "181337949458",
-  appId: "1:181337949458:web:739e0d2e61cbb1c22f1fcb"
+  apiKey: "AIzaSyB9k0hRVz_by2Jl3BsH2NbnwiHX-HKCwNs",
+  authDomain: "karaktergalerisiv2.firebaseapp.com",
+  projectId: "karaktergalerisiv2",
+  storageBucket: "karaktergalerisiv2.firebasestorage.app",
+  messagingSenderId: "530517152354",
+  appId: "1:530517152354:web:af0f4efedba4597554f73b"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -956,17 +1114,15 @@ const closeReportModal = () => {
     dom.viewFilter.value = 'all'; viewState.filter = 'all';
 };
 
-const getStarEmojis = (isFusion) => {
-    const color = isFusion ? 'text-fuchsia-400' : 'text-amber-400';
-    const icon = `<span class="material-symbols-outlined ${color}" style="font-variation-settings:'FILL' 1;">star</span>`;
-    return `<div class="flex">${icon}</div>`;
-};
+const getTypeBadge = (isFusion) => isFusion
+    ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1" style="background:rgba(224,179,255,0.12);color:#e0b3ff;border:1px solid rgba(224,179,255,0.3);"><span class="material-symbols-outlined" style="font-size:12px;">merge_type</span>FUSION</span>`
+    : '';
 
 const getDate = item => item.eklenmeTarihi ? item.eklenmeTarihi.toDate() : new Date(0);
 
 // ─── Image upload ─────────────────────────────────────────────────────────────
 const uploadImageToImgBB = async (file, apiKey) => {
-    if (!apiKey) { alert("ImgBB API key missing."); throw new Error("API key missing."); }
+    if (!apiKey) { throw new Error("ImgBB API key missing."); }
     const fd = new FormData(); fd.append('image', file);
     const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: fd });
     if (!res.ok) throw new Error(res.statusText);
@@ -975,7 +1131,7 @@ const uploadImageToImgBB = async (file, apiKey) => {
     throw new Error(r.error.message);
 };
 const uploadImageToVGY = async (file, userKey) => {
-    if (!userKey) { alert("VGY.ME User Key missing."); throw new Error("API key missing."); }
+    if (!userKey) { throw new Error("VGY.ME User Key missing."); }
     const fd = new FormData(); fd.append('file', file); fd.append('userkey', userKey);
     const res = await fetch('https://vgy.me/upload', { method: 'POST', body: fd });
     if (!res.ok) throw new Error(res.statusText);
@@ -1000,7 +1156,7 @@ const processImageInput = async (containerId) => {
         } else if (method === 'vgy') {
             return await uploadImageToVGY(file, apiKeys.vgy_user_key);
         }
-    } catch (e) { alert(`Image upload failed: ${e.message}`); return null; }
+    } catch (e) { throw new Error(`Image upload failed: ${e.message}`); }
     return null;
 };
 
@@ -1014,7 +1170,7 @@ const processRawImageInput = async (methodSelectEl, fileInputEl, linkInputEl) =>
         if (method === 'imgbb') return await uploadImageToImgBB(file, apiKeys.imgbb_main_key);
         if (method === 'imgbb2') return await uploadImageToImgBB(file, apiKeys.imgbb2_key);
         if (method === 'vgy')   return await uploadImageToVGY(file, apiKeys.vgy_user_key);
-    } catch (e) { alert(`Image upload failed: ${e.message}`); return null; }
+    } catch (e) { throw new Error(`Image upload failed: ${e.message}`); }
     return null;
 };
 
@@ -1031,7 +1187,7 @@ function closeCharacterSelector() {
 }
 function renderCharacterSelector(q) {
     dom.selectorGrid.innerHTML = '';
-    const filtered = characters.filter(c => c.name.toLowerCase().includes(q.toLowerCase()));
+    const filtered = characters.filter(c => trMatch(c.name, q) || trMatch(c.id, q));
     if (!filtered.length) { dom.selectorGrid.innerHTML = `<p class="text-center text-gray-400">No characters found.</p>`; return; }
     filtered.forEach(char => {
         const item = document.createElement('div');
@@ -1058,7 +1214,7 @@ function renderAdminPanel() {
         const missPrev = fusions.filter(f => !f.previewUrl);
         dom.reportTitle.textContent = 'Fusion Preview Report';
         dom.reportContent.innerHTML = `
-            <p class="mb-6 text-gray-400">Active 4★ fusion preview image status.</p>
+            <p class="mb-6 text-gray-400">Active fusion preview image status.</p>
             <h3><span class="text-green-400">✅ Has Preview (${hasPrev.length})</span></h3>
             ${hasPrev.map(f=>`<p>- ${f.name}</p>`).join('') || '<p class="text-gray-400">None.</p>'}
             <h3><span class="text-red-400">⚠️ Missing Preview (${missPrev.length})</span></h3>
@@ -1081,18 +1237,14 @@ function renderAdminPanel() {
     }
 
     dom.adminGrid.innerHTML = '';
-    const q = dom.searchInput.value.toLowerCase().trim();
+    const q = dom.searchInput.value.trim();
     let items;
-    if (viewState.filter === 'available') {
-        const pIds = new Set(characters.filter(c=>c.isFusion).flatMap(f=>f.fusionPartners||[]));
-        items = characters.filter(c=>!c.isFusion && !pIds.has(c.id));
-    } else {
-        switch (viewState.typeFilter) {
-            case 'character': items = characters.filter(c => !c.isFusion); break;
-            case 'fusion':    items = characters.filter(c => c.isFusion);  break;
-            case 'retired':   items = [...dismissed]; break;
-            default:          items = [...characters, ...dismissed];
-        }
+    switch (viewState.typeFilter) {
+        case 'character': items = characters.filter(c => !c.isFusion); break;
+        case 'fusion':    items = characters.filter(c => c.isFusion);  break;
+        case 'nofusion':  items = getNonFusedCharacters(); break;
+        case 'retired':   items = [...dismissed]; break;
+        default:          items = [...characters, ...dismissed];
     }
     if (viewState.irkFilter !== 'all') {
         items = items.filter(i => i.irk === viewState.irkFilter);
@@ -1102,7 +1254,7 @@ function renderAdminPanel() {
         if (viewState.sortBy === 'date_asc')  return getDate(a)-getDate(b);
         return a.name.localeCompare(b.name,'en');
     });
-    const filtered = items.filter(i => i.name.toLowerCase().includes(q) || i.id.toLowerCase().includes(q));
+    const filtered = items.filter(i => trMatch(i.name, q) || trMatch(i.id, q));
     dom.noResults.classList.toggle('hidden', filtered.length > 0);
 
     filtered.forEach(item => {
@@ -1112,12 +1264,13 @@ function renderAdminPanel() {
         const isFusion = item.isFusion;
         const nameClass = isFusion ? 'font-fantastical' : '';
 
+        const posStyle = p => p ? ` style="object-position:${p}"` : '';
         let imgBlock;
         if (isFusion) {
             const url = item.previewUrl || '';
-            imgBlock = `<div class="w-16 h-24 md:w-32 md:h-48 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage(event,'${url}')"><img src="${url}" alt="${item.name}" class="w-full h-full object-cover" loading="lazy"></div>`;
+            imgBlock = `<div class="w-16 h-24 md:w-32 md:h-48 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage(event,'${url}')"><img src="${url}" alt="${item.name}" class="w-full h-full object-cover" loading="lazy"${posStyle(item.previewPosition)}></div>`;
         } else {
-            imgBlock = `<div class="w-16 h-24 md:w-32 md:h-48 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage(event,'${item.imageUrl}')"><img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover" loading="lazy"></div>`;
+            imgBlock = `<div class="w-16 h-24 md:w-32 md:h-48 flex-shrink-0 rounded-lg overflow-hidden cursor-zoom-in" onclick="enlargeImage(event,'${item.imageUrl}')"><img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover" loading="lazy"${posStyle(item.imagePosition)}></div>`;
         }
 
         let actionBtns;
@@ -1127,7 +1280,11 @@ function renderAdminPanel() {
                 <button class="icon-button delete-button" data-id="${item.id}" data-type="${item.type}" title="Delete Permanently"><span class="material-symbols-outlined">delete_forever</span></button>`;
         } else {
             const type = isFusion ? 'fusion' : 'character';
+            const fuseBtn = (!isFusion && viewState.typeFilter === 'nofusion')
+                ? `<button class="icon-button fuse-button" data-id="${item.id}" title="Create fusion with this character"><span class="material-symbols-outlined" style="color:#e0b3ff;">merge_type</span></button>`
+                : '';
             actionBtns = `
+                ${fuseBtn}
                 <button class="icon-button view-prompt-button" data-id="${item.id}" data-name="${item.name}" title="View Prompts"><span class="material-symbols-outlined" style="color:var(--primary);">description</span></button>
                 <button class="icon-button au-button" data-id="${item.id}" data-type="${type}" title="Manage AU"><span class="material-symbols-outlined">auto_fix_high</span></button>
                 <button class="icon-button retire-button" data-id="${item.id}" data-type="${type}" data-action="retire" title="Retire"><span class="material-symbols-outlined">work_history</span></button>
@@ -1142,7 +1299,7 @@ function renderAdminPanel() {
         const auDots = Object.keys(item.auData||{}).filter(auId => {
             const def = alternativeUniverses.find(a=>a.id===auId);
             const auEntry = item.auData[auId];
-            return def && (isFusion ? auEntry?.fusionImageUrl : (auEntry?.starImageUrl || auEntry?.star3ImageUrl));
+            return def && auEntry?.imageUrl;
         }).map(auId => {
             const def = alternativeUniverses.find(a=>a.id===auId);
             const color = def?.color || '#64dcb4';
@@ -1184,18 +1341,19 @@ function renderAdminPanel() {
         }
 
         card.id = `card-${item.id}`;
-        card.innerHTML = `${imgBlock}<div class="flex-grow min-w-0"><h4 class="font-bold text-lg truncate ${nameClass}">${item.name}</h4><p class="text-sm text-gray-400">ID: ${item.id}</p>${irkBadge}<div class="flex mt-1">${getStarEmojis(isFusion)}</div>${dateHtml}${retiredBadge}${parentRow}${fusionMiniRow}${auDotsHtml}</div><div class="flex-shrink-0 flex flex-col gap-1">${actionBtns}</div>`;
+        card.innerHTML = `${imgBlock}<div class="flex-grow min-w-0"><h4 class="font-bold text-lg truncate ${nameClass}">${item.name}</h4><p class="text-sm text-gray-400">ID: ${item.id}</p>${irkBadge}${isFusion ? `<div class="mt-1">${getTypeBadge(true)}</div>` : ''}${dateHtml}${retiredBadge}${parentRow}${fusionMiniRow}${auDotsHtml}</div><div class="flex-shrink-0 flex flex-col gap-1">${actionBtns}</div>`;
         dom.adminGrid.appendChild(card);
     });
     setupActionListeners();
 }
 
 function setupActionListeners() {
-    dom.adminGrid.querySelectorAll('.view-prompt-button, .edit-button, .delete-button, .retire-button, .au-button').forEach(btn => {
+    dom.adminGrid.querySelectorAll('.view-prompt-button, .edit-button, .delete-button, .retire-button, .au-button, .fuse-button').forEach(btn => {
         btn.addEventListener('click', e => {
             const { id, type, action, name } = btn.dataset;
             if (btn.classList.contains('view-prompt-button')) openQuickPromptModal(id, name);
             else if (btn.classList.contains('au-button'))    openAuEntryModalForChar(id);
+            else if (btn.classList.contains('fuse-button'))  startFusionCreation(id);
             else if (btn.classList.contains('edit-button'))  loadItemForEdit(id, type);
             else if (btn.classList.contains('delete-button')) deleteItem(id, type);
             else if (btn.classList.contains('retire-button')) {
@@ -1203,6 +1361,31 @@ function setupActionListeners() {
             }
         });
     });
+}
+
+// ─── No-fusion helpers ────────────────────────────────────────────────────────
+function getNonFusedCharacters() {
+    const pIds = new Set(characters.filter(c => c.isFusion).flatMap(f => f.fusionPartners || []));
+    return characters.filter(c => !c.isFusion && !pIds.has(c.id));
+}
+
+/** Open the add form pre-configured as a fusion with the given character as Partner 1 */
+function startFusionCreation(charId) {
+    resetForm();
+    dom.itemTypeSelect.value = 'fusion';
+    toggleFormFields();
+    const ch = characters.find(c => c.id === charId);
+    if (ch) {
+        const dp = document.getElementById('fusionPartners_0_display');
+        const ip = document.querySelector('[name="fusionPartners_0"]');
+        if (dp) { dp.textContent = ch.name; dp.classList.remove('italic','text-gray-400'); }
+        if (ip) ip.value = ch.id;
+    }
+    dom.addEditFormContainer.classList.remove('hidden');
+    dom.toggleFormText.textContent = 'Close Form'; dom.toggleFormIcon.textContent = 'close';
+    initFocusSliders();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('id-input')?.focus();
 }
 
 // ─── AU Tab ───────────────────────────────────────────────────────────────────
@@ -1255,11 +1438,7 @@ function renderAuEntries() {
 
     // Collect all chars/fusions that have an entry for this AU
     const all = [...characters, ...dismissed];
-    const entries = all.filter(c => {
-        const e = c.auData?.[selectedAuId];
-        if (!e) return false;
-        return c.isFusion ? !!e.fusionImageUrl : !!(e.starImageUrl || e.star3ImageUrl);
-    });
+    const entries = all.filter(c => !!c.auData?.[selectedAuId]?.imageUrl);
 
     dom.auEntriesGrid.innerHTML = '';
     if (!entries.length) {
@@ -1270,25 +1449,27 @@ function renderAuEntries() {
 
     entries.forEach(char => {
         const entry = char.auData[selectedAuId];
-        const imgUrl = char.isFusion ? entry.fusionImageUrl : (entry.starImageUrl || entry.star3ImageUrl);
+        const imgUrl = entry.imageUrl;
+        const imgPos = entry.imagePosition;
         const origUrl = char.isFusion ? (char.previewUrl || char.imageUrl) : char.imageUrl;
+        const origPos = char.isFusion ? char.previewPosition : char.imagePosition;
         const card = document.createElement('div');
         card.className = 'au-entry-card';
         card.innerHTML = `
             <div class="flex gap-2 flex-shrink-0">
                 <div class="flex flex-col items-center gap-1">
-                    <img src="${origUrl}" alt="Original" class="object-cover rounded cursor-zoom-in" style="width:56px;height:72px;" onclick="enlargeImage(event,'${origUrl}')">
+                    <img src="${origUrl}" alt="Original" class="object-cover rounded cursor-zoom-in" style="width:56px;height:72px;${origPos?`object-position:${origPos};`:''}" onclick="enlargeImage(event,'${origUrl}')">
                     <span class="text-xs text-gray-500">Original</span>
                 </div>
                 <div class="flex flex-col items-center gap-1">
-                    <img src="${imgUrl}" alt="AU" class="object-cover rounded cursor-zoom-in" style="width:56px;height:72px;border:2px solid ${au.color||'var(--au)'};" onclick="enlargeImage(event,'${imgUrl}')">
+                    <img src="${imgUrl}" alt="AU" class="object-cover rounded cursor-zoom-in" style="width:56px;height:72px;border:2px solid ${au.color||'var(--au)'};${imgPos?`object-position:${imgPos};`:''}" onclick="enlargeImage(event,'${imgUrl}')">
                     <span class="text-xs" style="color:${au.color||'var(--au)'}">AU</span>
                 </div>
             </div>
             <div class="flex-grow min-w-0">
                 <p class="font-bold truncate">${char.name}</p>
                 <p class="text-xs text-gray-400">ID: ${char.id}</p>
-                <p class="text-xs text-gray-400 mt-1">${char.isFusion ? 'Fusion' : 'Karakter'}</p>
+                <p class="text-xs text-gray-400 mt-1">${char.isFusion ? 'Fusion' : 'Character'}</p>
                 ${entry.prompt ? `<p class="text-xs text-gray-500 mt-1 truncate">Prompt: ${entry.prompt.substring(0,60)}…</p>` : ''}
             </div>
             <div class="flex flex-col gap-1 flex-shrink-0">
@@ -1328,7 +1509,7 @@ async function saveAuDefinition() {
     const id = dom.auIdInput.value.trim().replace(/\s+/g,'_');
     const name = dom.auNameInput.value.trim();
     if (!id || !name) { dom.auFormStatus.textContent = 'ID and Name are required.'; dom.auFormStatus.classList.remove('hidden'); return; }
-    if (!firebase.auth().currentUser) { alert("Sign in first."); return; }
+    if (!firebase.auth().currentUser) { showAppToast("Sign in first.", 'error'); return; }
     // Check duplicate for new
     if (!editingAuId && alternativeUniverses.find(a => a.id === id)) {
         dom.auFormStatus.textContent = `ID "${id}" already exists.`; dom.auFormStatus.classList.remove('hidden'); return;
@@ -1343,7 +1524,7 @@ async function saveAuDefinition() {
 }
 async function deleteAu(auId) {
     if (!confirm(`Delete universe "${auId}" and all its entries? This will remove AU images from all characters.`)) return;
-    if (!firebase.auth().currentUser) { alert("Sign in first."); return; }
+    if (!firebase.auth().currentUser) { showAppToast("Sign in first.", 'error'); return; }
     try {
         // Remove from AU definitions
         await db.collection('alternativeUniverses').doc(auId).delete();
@@ -1360,13 +1541,60 @@ async function deleteAu(auId) {
         await batch.commit();
         if (selectedAuId === auId) { selectedAuId = null; dom.auEntriesPanel.classList.add('hidden'); dom.auSelectPrompt.classList.remove('hidden'); }
         await fetchItems();
-    } catch (e) { alert(`Error: ${e.message}`); }
+        showAppToast(`Universe "${auId}" deleted`);
+    } catch (e) { showAppToast(`Error: ${e.message}`, 'error'); }
 }
 
 // AU Entry CRUD
+
+/** Fill an AU image card with an existing url + focus position (or reset it) */
+function fillAuCard(card, url, pos) {
+    if (!card) return;
+    const sel = card.querySelector('.image-upload-method');
+    const f   = card.querySelector('.image-upload-file');
+    const l   = card.querySelector('.image-upload-link');
+    if (f) f.value = '';
+    if (url) {
+        if (sel) sel.value = 'link';
+        f?.classList.add('hidden');
+        l?.classList.remove('hidden');
+        if (l) l.value = url;
+        _showPreview(card, url);
+    } else {
+        if (sel) sel.value = 'imgbb';
+        f?.classList.remove('hidden');
+        l?.classList.add('hidden');
+        if (l) l.value = '';
+        _hidePreview(card);
+    }
+    setCardFocus(card, pos || '50% center');
+}
+
+/** Snapshot of AU entry inputs to detect unsaved edits when switching universes */
+let _auEntrySnapshot = null;
+function _takeAuEntrySnapshot() {
+    const card = _activeAuCard();
+    _auEntrySnapshot = {
+        prompt: dom.auEntryPrompt.value,
+        link:   card?.querySelector('.image-upload-link')?.value || '',
+        focus:  card ? getCardFocusValue(card) : '50% center',
+    };
+}
+function _auEntryFormDirty() {
+    if (!_auEntrySnapshot) return false;
+    const card = _activeAuCard();
+    if (card?.querySelector('.image-upload-file')?.files.length) return true;
+    return dom.auEntryPrompt.value !== _auEntrySnapshot.prompt
+        || (card?.querySelector('.image-upload-link')?.value || '') !== _auEntrySnapshot.link
+        || (card ? getCardFocusValue(card) : '50% center') !== _auEntrySnapshot.focus;
+}
+function _activeAuCard() {
+    return document.getElementById('au-image-card');
+}
+
 function openAuEntryModalForChar(charId) {
     // Called from character list AU button — no tab switch needed; show inline AU dropdown
-    if (!alternativeUniverses.length) { alert("Create a universe first."); return; }
+    if (!alternativeUniverses.length) { showAppToast('Create a universe first.', 'error'); return; }
     if (!selectedAuId) selectedAuId = alternativeUniverses[0].id;
 
     // Populate AU picker dropdown
@@ -1375,14 +1603,16 @@ function openAuEntryModalForChar(charId) {
     ).join('');
     dom.auEntryAuPicker.classList.remove('hidden');
     dom.auEntryAuSelect.onchange = () => {
+        // Keep whatever the user already typed/selected when only switching target universe
+        const keepInputs = _auEntryFormDirty();
         selectedAuId = dom.auEntryAuSelect.value;
-        openAuEntryModalForCharInAu(charId);
+        openAuEntryModalForCharInAu(charId, keepInputs);
     };
 
     openAuEntryModalForCharInAu(charId);
 }
 
-function openAuEntryModalForCharInAu(charId) {
+function openAuEntryModalForCharInAu(charId, preserveInputs = false) {
     auEntryEditingCharId = charId;
     auEntrySelectorCharId = charId;
     const char = [...characters, ...dismissed].find(c => c.id === charId);
@@ -1401,49 +1631,18 @@ function openAuEntryModalForCharInAu(charId) {
     dom.auEntrySelectedDisplay.classList.remove('hidden');
     dom.auEntrySelectedName.textContent = char.name;
 
-    // Show appropriate image field
-    document.getElementById('au-star3-field').classList.toggle('hidden', !!char.isFusion);
-    document.getElementById('au-fusion-field').classList.toggle('hidden', !char.isFusion);
-
-    // Pre-fill existing
-    const existing = char.auData?.[selectedAuId];
-    const star3Link = document.getElementById('au-star3-link');
-    const fusionLink = document.getElementById('au-fusion-link');
-    const star3Preview = document.getElementById('au-star3-preview');
-    const fusionPreview = document.getElementById('au-fusion-preview');
-
-    const existingStarUrl = existing?.starImageUrl || existing?.star3ImageUrl || '';
-    if (existingStarUrl) {
-        star3Link.value = existingStarUrl;
-        star3Preview.src = existingStarUrl;
-        document.getElementById('au-star3-preview-wrap').classList.remove('hidden');
-        const sel = document.querySelector('#au-star3-field .image-upload-method');
-        sel.value = 'link';
-        document.getElementById('au-star3-file').classList.add('hidden');
-        star3Link.classList.remove('hidden');
-    } else {
-        star3Link.value = '';
-        document.getElementById('au-star3-preview-wrap').classList.add('hidden');
+    if (!preserveInputs) {
+        const existing = char.auData?.[selectedAuId];
+        fillAuCard(document.getElementById('au-image-card'), existing?.imageUrl, existing?.imagePosition);
+        dom.auEntryPrompt.value = existing?.prompt || '';
+        _takeAuEntrySnapshot();
     }
-    if (existing?.fusionImageUrl) {
-        fusionLink.value = existing.fusionImageUrl;
-        fusionPreview.src = existing.fusionImageUrl;
-        document.getElementById('au-fusion-preview-wrap').classList.remove('hidden');
-        const sel = document.querySelector('#au-fusion-field .image-upload-method');
-        sel.value = 'link';
-        document.getElementById('au-fusion-file').classList.add('hidden');
-        fusionLink.classList.remove('hidden');
-    } else {
-        fusionLink.value = '';
-        document.getElementById('au-fusion-preview-wrap').classList.add('hidden');
-    }
-    dom.auEntryPrompt.value = existing?.prompt || '';
     dom.auEntryStatus.classList.add('hidden');
     dom.auEntryModal.classList.add('visible'); dom.auEntryModal.classList.remove('hidden');
 }
 
 function openAuEntryModalNew() {
-    if (!selectedAuId) { alert("Select a universe first."); return; }
+    if (!selectedAuId) { showAppToast('Select a universe first.', 'error'); return; }
     auEntryEditingCharId = null;
     auEntrySelectorCharId = null;
 
@@ -1455,13 +1654,9 @@ function openAuEntryModalNew() {
     dom.auEntrySelectedDisplay.classList.add('hidden');
     dom.auEntrySelectedName.textContent = '';
     dom.auEntrySearch.value = '';
-    document.getElementById('au-star3-field').classList.remove('hidden');
-    document.getElementById('au-fusion-field').classList.add('hidden');
-    document.getElementById('au-star3-link').value = '';
-    document.getElementById('au-fusion-link').value = '';
-    document.getElementById('au-star3-preview-wrap').classList.add('hidden');
-    document.getElementById('au-fusion-preview-wrap').classList.add('hidden');
+    fillAuCard(document.getElementById('au-image-card'), null, null);
     dom.auEntryPrompt.value = '';
+    _takeAuEntrySnapshot();
     dom.auEntryStatus.classList.add('hidden');
     renderAuEntrySelector('');
     dom.auEntryModal.classList.add('visible'); dom.auEntryModal.classList.remove('hidden');
@@ -1477,21 +1672,25 @@ function closeAuEntryModal() {
 function renderAuEntrySelector(q) {
     dom.auEntrySelectorGrid.innerHTML = '';
     const pool = [...characters, ...dismissed].filter(c => !c.originalCharacterId); // no EEs
-    const filtered = pool.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.id.toLowerCase().includes(q.toLowerCase()));
+    const filtered = pool.filter(c => trMatch(c.name, q) || trMatch(c.id, q));
     filtered.forEach(char => {
         const item = document.createElement('div');
         item.className = `character-selector-item ${auEntrySelectorCharId===char.id?'ring-1 ring-[var(--au)]':''}`;
         const imgUrl = char.isFusion ? (char.previewUrl||char.imageUrl) : char.imageUrl;
-        const typeLabel = char.isFusion ? '★ Fusion' : `★ Char`;
+        const typeLabel = char.isFusion ? 'Fusion' : 'Character';
+        const hasEntry = !!char.auData?.[selectedAuId]?.imageUrl;
         item.innerHTML = `<img src="${imgUrl}" alt="${char.name}" class="w-12 h-16 object-cover rounded-md flex-shrink-0">
-            <div><p class="font-bold">${char.name}</p><p class="text-xs text-gray-400">${typeLabel} · ID: ${char.id}</p></div>`;
+            <div><p class="font-bold">${char.name}</p><p class="text-xs text-gray-400">${typeLabel} · ID: ${char.id}</p></div>
+            ${hasEntry ? `<span class="material-symbols-outlined ml-auto flex-shrink-0" title="Already has an entry in this universe" style="color:var(--au);font-size:18px;">check_circle</span>` : ''}`;
         item.onclick = () => {
             auEntrySelectorCharId = char.id;
             dom.auEntrySelectedName.textContent = char.name;
             dom.auEntrySelectedDisplay.classList.remove('hidden');
-            // Show correct field
-            document.getElementById('au-star3-field').classList.toggle('hidden', !!char.isFusion);
-            document.getElementById('au-fusion-field').classList.toggle('hidden', !char.isFusion);
+            // Pre-fill the selected character's existing entry for this universe
+            const existing = char.auData?.[selectedAuId];
+            fillAuCard(document.getElementById('au-image-card'), existing?.imageUrl, existing?.imagePosition);
+            dom.auEntryPrompt.value = existing?.prompt || '';
+            _takeAuEntrySnapshot();
             renderAuEntrySelector(dom.auEntrySearch.value);
         };
         dom.auEntrySelectorGrid.appendChild(item);
@@ -1502,7 +1701,7 @@ async function saveAuEntry() {
     const charId = auEntrySelectorCharId || auEntryEditingCharId;
     if (!charId) { dom.auEntryStatus.textContent = 'Select a character first.'; dom.auEntryStatus.classList.remove('hidden'); return; }
     if (!selectedAuId) { dom.auEntryStatus.textContent = 'No universe selected.'; dom.auEntryStatus.classList.remove('hidden'); return; }
-    if (!firebase.auth().currentUser) { alert("Sign in first."); return; }
+    if (!firebase.auth().currentUser) { showAppToast("Sign in first.", 'error'); return; }
 
     const char = [...characters, ...dismissed].find(c => c.id === charId);
     if (!char) return;
@@ -1512,27 +1711,20 @@ async function saveAuEntry() {
     saveBtn.disabled = true; saveBtn.textContent = 'Uploading...';
 
     try {
-        let starUrl = null, fusionUrl = null;
+        const FV = firebase.firestore.FieldValue;
+        const card = document.getElementById('au-image-card');
+        const url = await processRawImageInput(
+            card.querySelector('.image-upload-method'),
+            card.querySelector('.image-upload-file'),
+            card.querySelector('.image-upload-link')
+        );
+        if (!url) throw new Error("Please provide an image URL or upload a file.");
 
-        if (!char.isFusion) {
-            const methodSel = document.querySelector('#au-star3-field .image-upload-method');
-            const fileInput = document.getElementById('au-star3-file');
-            const linkInput = document.getElementById('au-star3-link');
-            starUrl = await processRawImageInput(methodSel, fileInput, linkInput);
-        } else {
-            const methodSel = document.querySelector('#au-fusion-field .image-upload-method');
-            const fileInput = document.getElementById('au-fusion-file');
-            const linkInput = document.getElementById('au-fusion-link');
-            fusionUrl = await processRawImageInput(methodSel, fileInput, linkInput);
-        }
-
+        const pos = getCardFocusValue(card);
+        const posVal = (pos === '50% center' || pos === 'center center') ? FV.delete() : pos;
         const prompt = dom.auEntryPrompt.value.trim();
-        const entryData = {};
-        if (starUrl)   entryData.starImageUrl = starUrl;
-        if (fusionUrl) entryData.fusionImageUrl = fusionUrl;
-        if (prompt)    entryData.prompt = prompt;
 
-        if (!starUrl && !fusionUrl) throw new Error("Please provide an image URL or upload a file.");
+        const entryData = { prompt: prompt || FV.delete(), imageUrl: url, imagePosition: posVal };
 
         const coll = dismissed.find(d=>d.id===charId) ? 'dismissed' : 'characters';
         await db.collection(coll).doc(charId).set(
@@ -1542,6 +1734,7 @@ async function saveAuEntry() {
 
         await fetchItems();
         closeAuEntryModal();
+        showAppToast(`AU entry saved for ${char.name}`);
     } catch (e) {
         dom.auEntryStatus.textContent = `Error: ${e.message}`;
         dom.auEntryStatus.classList.remove('hidden');
@@ -1552,26 +1745,27 @@ async function saveAuEntry() {
 
 async function deleteAuEntry(charId) {
     if (!confirm("Remove this character from the AU?")) return;
-    if (!firebase.auth().currentUser) { alert("Sign in first."); return; }
+    if (!firebase.auth().currentUser) { showAppToast("Sign in first.", 'error'); return; }
     const coll = dismissed.find(d=>d.id===charId) ? 'dismissed' : 'characters';
     try {
         await db.collection(coll).doc(charId).update({ [`auData.${selectedAuId}`]: firebase.firestore.FieldValue.delete() });
         await fetchItems();
-    } catch (e) { alert(`Error: ${e.message}`); }
+        showAppToast("Entry removed from universe");
+    } catch (e) { showAppToast(`Error: ${e.message}`, 'error'); }
 }
 
 // ─── Form (Characters/Fusions) ───────────────────────────────────────────────
 function toggleFormFields() {
     const t = dom.itemTypeSelect.value;
-    dom.addEditForm.querySelector('#character-fields').classList.toggle('hidden', t !== 'character');
     dom.addEditForm.querySelector('#fusion-fields').classList.toggle('hidden', t !== 'fusion');
-    dom.addEditForm.querySelector('#fusion-preview-image-field').classList.toggle('hidden', t !== 'fusion');
-    dom.addEditForm.querySelector('#main-image-container > label').textContent =
-        t === 'fusion' ? 'Fusion GIF (Optional)' : 'Main Image';
+    dom.addEditForm.querySelector('#fusion-preview-image-field').style.display = t === 'fusion' ? '' : 'none';
+    const titleEl = dom.addEditForm.querySelector('#main-image-container .img-card-title');
+    if (titleEl) titleEl.textContent = t === 'fusion' ? 'Fusion GIF (İsteğe Bağlı)' : 'Ana Görsel';
+    const mainFocus = dom.addEditForm.querySelector('#main-image-container .img-focus-row');
+    if (mainFocus) mainFocus.classList.toggle('hidden', t === 'fusion');
     dom.promptSection.classList.remove('hidden');
-    const show1 = t==='character', showF = t==='fusion';
-    ['prompt-block-1','prompt-block-2','prompt-block-3'].forEach(id => document.getElementById(id).classList.toggle('hidden', !show1));
-    document.getElementById('prompt-block-FUSION').classList.toggle('hidden', !showF);
+    document.getElementById('prompt-block-KARAKTER').classList.toggle('hidden', t!=='character');
+    document.getElementById('prompt-block-FUSION').classList.toggle('hidden', t!=='fusion');
     document.getElementById('prompt-block-EK').classList.remove('hidden');
 }
 
@@ -1580,34 +1774,31 @@ function setupImageInputTogglers() {
         if (sel.dataset.toggler) return;
         sel.dataset.toggler = '1';
         sel.addEventListener('change', e => {
-            const p = e.target.parentElement;
-            const f = p.querySelector('.image-upload-file');
-            const l = p.querySelector('.image-upload-link');
+            const card = e.target.closest('.img-card');
+            if (!card) return;
+            const f = card.querySelector('.image-upload-file');
+            const l = card.querySelector('.image-upload-link');
             if (!f || !l) return;
             const isLink = e.target.value === 'link';
             f.classList.toggle('hidden', isLink);
             l.classList.toggle('hidden', !isLink);
-            // reset preview when method changes
-            const container = p.closest('[id$="-container"], [id$="-field"]') || p.parentElement;
-            _hidePreview(container);
+            _hidePreview(card);
         });
     });
 
-    // Image preview: file input
     document.querySelectorAll('.image-upload-file').forEach(inp => {
         if (inp.dataset.preview) return;
         inp.dataset.preview = '1';
         inp.addEventListener('change', e => {
             const file = e.target.files[0];
-            const container = inp.closest('[class*="flex flex-col"]')?.parentElement || inp.parentElement.parentElement;
-            if (!file) { _hidePreview(container); return; }
+            const card = inp.closest('.img-card');
+            if (!file) { _hidePreview(card); return; }
             const reader = new FileReader();
-            reader.onload = ev => _showPreview(container, ev.target.result);
+            reader.onload = ev => _showPreview(card, ev.target.result);
             reader.readAsDataURL(file);
         });
     });
 
-    // Image preview: link input (debounced)
     document.querySelectorAll('.image-upload-link').forEach(inp => {
         if (inp.dataset.preview) return;
         inp.dataset.preview = '1';
@@ -1615,24 +1806,37 @@ function setupImageInputTogglers() {
         inp.addEventListener('input', e => {
             clearTimeout(t);
             const url = e.target.value.trim();
-            const container = inp.closest('[class*="flex flex-col"]')?.parentElement || inp.parentElement.parentElement;
-            if (!url) { _hidePreview(container); return; }
-            t = setTimeout(() => _showPreview(container, url), 600);
+            const card = inp.closest('.img-card');
+            if (!url) { _hidePreview(card); return; }
+            t = setTimeout(() => _showPreview(card, url), 600);
         });
     });
 }
 
 function _showPreview(container, src) {
-    const wrap = container?.querySelector?.('.img-preview');
+    const placeholder = container?.querySelector('.img-placeholder');
+    const wrap = container?.querySelector('.img-preview');
     if (!wrap) return;
     const img = wrap.querySelector('img');
-    img.onerror = () => { wrap.classList.add('hidden'); };
-    img.onload  = () => { wrap.classList.remove('hidden'); };
+    if (!img) return;
+    img.onerror = () => { wrap.classList.add('hidden'); placeholder?.classList.remove('hidden'); };
+    img.onload  = () => { wrap.classList.remove('hidden'); placeholder?.classList.add('hidden'); };
     img.src = src;
+    // Sync the small crop preview box
+    const cropImg  = container.querySelector('.img-crop-preview');
+    const cropHint = container.querySelector('.img-focus-hint');
+    if (cropImg) { cropImg.src = src; cropImg.style.display = 'block'; }
+    if (cropHint) cropHint.style.display = 'none';
 }
 function _hidePreview(container) {
-    const wrap = container?.querySelector?.('.img-preview');
+    const placeholder = container?.querySelector('.img-placeholder');
+    const wrap = container?.querySelector('.img-preview');
     if (wrap) { wrap.classList.add('hidden'); const img = wrap.querySelector('img'); if (img) img.src = ''; }
+    placeholder?.classList.remove('hidden');
+    const cropImg  = container?.querySelector('.img-crop-preview');
+    const cropHint = container?.querySelector('.img-focus-hint');
+    if (cropImg) { cropImg.src = ''; cropImg.style.display = 'none'; }
+    if (cropHint) cropHint.style.display = '';
 }
 
 // ── Prompt char counters ──────────────────────────────────────────────────────
@@ -1698,17 +1902,14 @@ function resetForm() {
     dom.saveButton.textContent = "Save";
     dom.cancelButton.classList.add('hidden');
     dom.saveButton.disabled = false;
-    document.querySelectorAll('.image-upload-method').forEach(sel => {
-        sel.value = 'imgbb';
-        const p = sel.parentElement;
-        p.querySelector('.image-upload-file')?.classList.remove('hidden');
-        if(p.querySelector('.image-upload-file')) p.querySelector('.image-upload-file').value = '';
-        p.querySelector('.image-upload-link')?.classList.add('hidden');
-        if(p.querySelector('.image-upload-link')) p.querySelector('.image-upload-link').value = '';
+    // Reset every image card in the form: method, inputs, previews (incl. crop preview)
+    dom.addEditForm.querySelectorAll('.img-card').forEach(card => {
+        const sel = card.querySelector('.image-upload-method'); if (sel) sel.value = 'imgbb';
+        const f = card.querySelector('.image-upload-file'); if (f) { f.value = ''; f.classList.remove('hidden'); }
+        const l = card.querySelector('.image-upload-link'); if (l) { l.value = ''; l.classList.add('hidden'); }
+        _hidePreview(card);
     });
-    // Clear image previews
-    document.querySelectorAll('.img-preview').forEach(w => { w.classList.add('hidden'); const img = w.querySelector('img'); if(img) img.src=''; });
-    ['1','2','3','FUSION','EK'].forEach(l => {
+    ['KARAKTER','FUSION','EK'].forEach(l => {
         const t = document.getElementById(`prompt-title-${l}`);
         const tx = document.getElementById(`prompt-text-${l}`);
         const d = document.getElementById(`prompt-docId-${l}`);
@@ -1720,6 +1921,9 @@ function resetForm() {
     document.getElementById('id-rename-warning')?.classList.add('hidden');
     document.getElementById('duplicate-name-warning')?.classList.add('hidden');
     dom.dateEditContainer.classList.add('hidden');
+    // Reset all focus sliders
+    ['main-image-container','preview-image-container'].forEach(id =>
+        setCardFocus(document.getElementById(id), '50% center'));
     ['fusionPartners_0','fusionPartners_1','originalCharacterId'].forEach(id => {
         const dp = document.getElementById(`${id}_display`);
         const ip = document.querySelector(`[name="${id}"]`);
@@ -1732,7 +1936,7 @@ function resetForm() {
 const loadItemForEdit = async (itemId, itemType) => {
     resetForm();
     const item = [...characters, ...dismissed].find(i => i.id === itemId);
-    if (!item) return alert("Record not found.");
+    if (!item) return showAppToast("Record not found.", 'error');
     editingItemId = itemId; editingItemType = itemType;
     dom.formTitle.textContent = "Edit Record";
     dom.itemTypeSelect.value = itemType; dom.itemTypeSelect.disabled = true;
@@ -1760,8 +1964,24 @@ const loadItemForEdit = async (itemId, itemType) => {
         _showPreview(c, url);
     };
     setupImg('main-image-container', item.imageUrl);
-    // no evolution image containers in single-star system
     if (itemType==='fusion') setupImg('preview-image-container', item.previewUrl);
+
+    // Restore focus points + sync crop previews
+    initFocusSliders();
+    const _syncCrop = (cardId, pos) => {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        setCardFocus(card, pos || '50% center');
+        const src = card.querySelector('.img-preview img')?.src;
+        const cropImg  = card.querySelector('.img-crop-preview');
+        const cropHint = card.querySelector('.img-focus-hint');
+        if (cropImg && src && !src.endsWith(location.href)) {
+            cropImg.src = src; cropImg.style.display = 'block';
+            if (cropHint) cropHint.style.display = 'none';
+        }
+    };
+    _syncCrop('main-image-container', item.imagePosition);
+    if (itemType==='fusion') _syncCrop('preview-image-container', item.previewPosition);
 
     const updateSel = (inputId, charId) => {
         const ch = [...characters, ...dismissed].find(c=>c.id===charId);
@@ -1794,7 +2014,7 @@ const loadItemForEdit = async (itemId, itemType) => {
     setupImageInputTogglers();
     setupPromptCharCounters();
     // Trigger char counters for loaded prompt text
-    ['1','2','3','FUSION','EK'].forEach(l => {
+    ['KARAKTER','FUSION','EK'].forEach(l => {
         const tx = document.getElementById(`prompt-text-${l}`);
         const counter = document.querySelector(`#prompt-block-${l} .prompt-char-count`);
         if (tx && counter) counter.textContent = tx.value.length > 0 ? `${tx.value.length.toLocaleString()} chars` : '';
@@ -1810,14 +2030,15 @@ const handleFormSubmit = async (e) => {
     e.preventDefault();
     const form = dom.addEditForm;
     const newId = form.elements['id'].value.trim();
-    if (!newId || !firebase.auth().currentUser) return alert(!newId ? "ID cannot be empty." : "Please sign in.");
+    if (!newId || !firebase.auth().currentUser) return showAppToast(!newId ? "ID cannot be empty." : "Please sign in.", 'error');
     const isEditing = !!editingItemId;
     const isRename  = isEditing && newId !== editingItemId;
     dom.saveButton.textContent = 'Uploading...'; dom.saveButton.disabled = true;
     try {
         const type = dom.itemTypeSelect.value;
         const irkVal = form.elements['irk'].value.trim();
-        let data = { name: form.elements['name'].value.trim(), irk: irkVal || null };
+        const mainPos = getCardFocusValue(document.getElementById('main-image-container'));
+        let data = { name: form.elements['name'].value.trim(), irk: irkVal || null, imagePosition: (mainPos === '50% center' || mainPos === 'center center') ? null : mainPos };
         const coll = 'characters';
         if (isEditing) {
             const dv = form.elements['eklenmeTarihi'].value;
@@ -1825,19 +2046,23 @@ const handleFormSubmit = async (e) => {
         } else { data.eklenmeTarihi = firebase.firestore.FieldValue.serverTimestamp(); }
 
         if (type==='character') {
-            data.isFusion=false; data.star=1;
+            data.isFusion=false;
             const u1 = await processImageInput('main-image-container');
             if (!u1&&!isEditing) throw new Error("Main image is required.");
             if (isRename) {
+                // On rename, carry over existing image if no new one provided
                 const old = [...characters,...dismissed].find(c=>c.id===editingItemId);
                 data.imageUrl = u1 || old?.imageUrl || null;
+                // Carry over auData
                 if (old?.auData) data.auData = old.auData;
             } else {
-                data.imageUrl = u1;
+                data.imageUrl=u1;
             }
         } else if (type==='fusion') {
-            data.isFusion=true; data.star=4;
+            data.isFusion=true;
             data.fusionPartners=[form.elements['fusionPartners_0'].value.trim(),form.elements['fusionPartners_1'].value.trim()].filter(Boolean);
+            const prevPos = getCardFocusValue(document.getElementById('preview-image-container'));
+            data.previewPosition = (prevPos === '50% center' || prevPos === 'center center') ? null : prevPos;
             const [u1,u2] = await Promise.all([processImageInput('main-image-container'),processImageInput('preview-image-container')]);
             if (isRename) {
                 const old = [...characters,...dismissed].find(c=>c.id===editingItemId);
@@ -1860,7 +2085,7 @@ const handleFormSubmit = async (e) => {
         batch.set(db.collection(coll).doc(newId), data, {merge: !isRename});
 
         if (type==='character'||type==='fusion') {
-            const levels = type==='character' ? ['1','EK'] : ['FUSION','EK'];
+            const levels = type==='character' ? ['KARAKTER','EK'] : ['FUSION','EK'];
             levels.forEach(suffix => {
                 const dbKey = suffix==='FUSION' ? 'FÜZYON' : suffix;
                 const tv  = document.getElementById(`prompt-title-${suffix}`)?.value.trim();
@@ -1880,12 +2105,12 @@ const handleFormSubmit = async (e) => {
             });
         }
         await batch.commit();
-        alert(`Record ${isEditing ? (isRename ? 'renamed & updated' : 'updated') : 'saved'} successfully!`);
+        showAppToast(`Record ${isEditing ? (isRename ? 'renamed & updated' : 'updated') : 'saved'} successfully`);
         await fetchItems();
         dom.addEditFormContainer.classList.add('hidden');
         dom.toggleFormText.textContent='Add New'; dom.toggleFormIcon.textContent='add';
         resetForm();
-    } catch(e) { console.error(e); alert(`Error: ${e.message}`);
+    } catch(e) { console.error(e); showAppToast(`Error: ${e.message}`, 'error');
     } finally { dom.saveButton.textContent=isEditing?'Update':'Save'; dom.saveButton.disabled=false; }
 };
 
@@ -1894,27 +2119,27 @@ const deleteItem = async (itemId, itemType) => {
     const coll = isRetired?'dismissed':'characters';
     const item = [...characters,...dismissed].find(i=>i.id===itemId);
     if (!item||!confirm(`${isRetired?'Permanently delete':'Delete'} "${item.name}"?`)) return;
-    if (!firebase.auth().currentUser) return alert("Sign in first.");
-    try { await db.collection(coll).doc(itemId).delete(); alert("Deleted."); await fetchItems(); }
-    catch(e) { alert(`Delete error: ${e.message}`); }
+    if (!firebase.auth().currentUser) return showAppToast("Sign in first.", 'error');
+    try { await db.collection(coll).doc(itemId).delete(); showAppToast(`"${item.name}" deleted`); await fetchItems(); }
+    catch(e) { showAppToast(`Delete error: ${e.message}`, 'error'); }
 };
 const retireItem = async (itemId, itemType) => {
     if (!confirm("Retire this record?")) return;
-    if (!firebase.auth().currentUser) return alert("Sign in first.");
+    if (!firebase.auth().currentUser) return showAppToast("Sign in first.", 'error');
     const coll = 'characters';
     const doc = await db.collection(coll).doc(itemId).get();
-    if (!doc.exists) return alert("Record not found.");
+    if (!doc.exists) return showAppToast("Record not found.", 'error');
     try {
         await db.collection('dismissed').doc(itemId).set({...doc.data(),type:itemType});
         await db.collection(coll).doc(itemId).delete();
-        alert("Retired."); await fetchItems();
-    } catch(e) { alert(`Error: ${e.message}`); }
+        showAppToast("Record retired"); await fetchItems();
+    } catch(e) { showAppToast(`Error: ${e.message}`, 'error'); }
 };
 const unretireItem = async (itemId) => {
     if (!confirm("Restore this record?")) return;
-    if (!firebase.auth().currentUser) return alert("Sign in first.");
+    if (!firebase.auth().currentUser) return showAppToast("Sign in first.", 'error');
     const doc = await db.collection('dismissed').doc(itemId).get();
-    if (!doc.exists) return alert("Record not found.");
+    if (!doc.exists) return showAppToast("Record not found.", 'error');
     let d = doc.data();
     const origType = d.type||'character';
     const dest = 'characters';
@@ -1922,8 +2147,8 @@ const unretireItem = async (itemId) => {
     try {
         await db.collection(dest).doc(itemId).set(d);
         await db.collection('dismissed').doc(itemId).delete();
-        alert("Restored."); await fetchItems();
-    } catch(e) { alert(`Error: ${e.message}`); }
+        showAppToast("Record restored"); await fetchItems();
+    } catch(e) { showAppToast(`Error: ${e.message}`, 'error'); }
 };
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -1980,8 +2205,8 @@ const fetchApiKeys = async () => {
     try {
         const doc = await db.collection('settings').doc('apiKeys').get();
         if (doc.exists) { const d=doc.data(); apiKeys.imgbb_main_key=d.imgbb_main_key||null; apiKeys.imgbb2_key=d.imgbb2_key||null; apiKeys.vgy_user_key=d.vgy_user_key||null; return true; }
-        alert("Admin API keys not found."); return false;
-    } catch(e) { alert("Failed to load API keys."); return false; }
+        showAppToast("Admin API keys not found.", 'error'); return false;
+    } catch(e) { showAppToast("Failed to load API keys.", 'error'); return false; }
 };
 
 // ─── Irk filter populate ──────────────────────────────────────────────────────
@@ -2016,13 +2241,10 @@ function renderStats() {
     const auCount  = alternativeUniverses.length;
     const retCount = dismissed.length;
 
-    // Characters with image
-    const fullSets = normals.filter(c => c.imageUrl);
-
-    // Total unique images
+    // Total unique images (characters + fusions)
     let imgCount = 0;
     normals.forEach(c => { if (c.imageUrl) imgCount++; });
-    fusions.forEach(f => { if (f.imageUrl || f.previewUrl) imgCount++; });
+    fusions.forEach(f => { if (f.previewUrl || f.imageUrl) imgCount++; });
 
     // Fusion usage: how many chars are fused at least once
     const fusedIds = new Set(fusions.flatMap(f => f.fusionPartners || []));
@@ -2039,7 +2261,23 @@ function renderStats() {
     const setSub = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
     set('stat-chars',   normals.length);
-    setSub('stat-chars-sub', fusedIds.size > 0 ? `${fusedIds.size} in fusions` : '');
+    const nonFusedCount = normals.filter(c => !fusedIds.has(c.id)).length;
+    setSub('stat-chars-sub', fusedIds.size > 0 ? `${fusedIds.size} in fusions · ${nonFusedCount} not fused` : '');
+
+    // No Fusion chip count + clickable Characters stat card
+    const nfChip = document.querySelector('[data-type-filter="nofusion"]');
+    if (nfChip) nfChip.textContent = nonFusedCount > 0 ? `No Fusion (${nonFusedCount})` : 'No Fusion';
+    const charsCard = document.getElementById('stat-chars')?.closest('.stat-card');
+    if (charsCard && !charsCard.dataset.clickable) {
+        charsCard.dataset.clickable = '1';
+        charsCard.style.cursor = 'pointer';
+        charsCard.title = 'Show characters without any fusion';
+        charsCard.addEventListener('click', () => {
+            document.querySelector('.tab-btn[data-tab="characters"]')?.click();
+            nfChip?.click();
+            nfChip?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        });
+    }
 
     set('stat-fusions',  fusions.length);
     setSub('stat-fusions-sub', fusions.length > 0 ? `${Math.round(fusions.length/Math.max(normals.length,1)*100)}% fusion rate` : '');
@@ -2058,9 +2296,6 @@ function renderStats() {
 
     set('stat-images', imgCount);
     setSub('stat-images-sub', newest ? `Latest: ${newest.name}` : '');
-
-    set('stat-evos', fullSets.length);
-    setSub('stat-evos-sub', normals.length > 0 ? `${Math.round(fullSets.length/normals.length*100)}% complete` : '');
 }
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
@@ -2112,14 +2347,15 @@ async function openQuickPromptModal(charId, charName) {
     try {
         const snap = await db.collection('promptLibrary').where('charId','==',charId).get();
         if (snap.empty) { dom.qpLoading.classList.add('hidden'); dom.qpEmpty.classList.remove('hidden'); return; }
-        const order = {'1':1,'2':2,'3':3,'FÜZYON':4,'EK':5};
+        const order = {'KARAKTER':1,'FÜZYON':2,'EK':3};
         const prompts = snap.docs.map(d=>d.data()).sort((a,b)=>(order[a.charStar]||99)-(order[b.charStar]||99));
         window._qpTexts = prompts.map(p => p.prompt);
         let html='';
         prompts.forEach((p, idx) => {
-            const badgeMap = {'1':'bg-orange-900/50 text-orange-200 border-orange-700/50','2':'bg-slate-700/50 text-slate-200 border-slate-600/50','3':'bg-amber-900/50 text-amber-200 border-amber-700/50','FÜZYON':'bg-fuchsia-900/50 text-fuchsia-200 border-fuchsia-700/50'};
+            const badgeMap = {'KARAKTER':'bg-indigo-900/50 text-indigo-200 border-indigo-700/50','FÜZYON':'bg-fuchsia-900/50 text-fuchsia-200 border-fuchsia-700/50','EK':'bg-slate-700/50 text-slate-200 border-slate-600/50'};
             const bc = badgeMap[p.charStar]||'bg-gray-700 text-gray-300';
-            const label = p.charStar==='FÜZYON'?'FUSION':(isNaN(p.charStar)?p.charStar:p.charStar+' ★');
+            const labelMap = {'KARAKTER':'KARAKTER','FÜZYON':'FUSION','FUSION':'FUSION','EK':'EK'};
+            const label = labelMap[p.charStar] || p.charStar;
             html += `<div class="bg-[#131318] p-4 rounded-lg border border-gray-700 relative">
                 <div class="flex justify-between items-center mb-2">
                     <span class="px-2 py-1 rounded text-xs font-bold border ${bc}">${label}</span>
@@ -2169,11 +2405,9 @@ async function downloadPrompts() {
             promptsByChar[p.charId][p.charStar] = p;
         });
 
-        // ── Star label helper ──
+        // ── Prompt type label helper ──
         const starLabel = (star) => {
-            if (star === '1') return '1★';
-            if (star === '2') return '2★';
-            if (star === '3') return '3★';
+            if (star === 'KARAKTER') return 'Character';
             if (star === 'FÜZYON' || star === 'FUSION') return 'Fusion';
             if (star === 'EK') return 'Extra';
             return star;
@@ -2191,7 +2425,7 @@ async function downloadPrompts() {
                 const isLocked = auDef?.locked ? true : false;
                 if (isLocked && !incAuLocked) return;
                 if (!isLocked && !incAuUnlocked) return;
-                const type = char.isFusion ? 'Fusion' : '3★';
+                const type = char.isFusion ? 'Fusion' : 'Character';
                 const line = `#### ${auName} AU (${type})\n\n${entry.prompt}\n`;
                 if (isLocked) lockedLines.push(line);
                 else unlockedLines.push(line);
@@ -2235,8 +2469,8 @@ async function downloadPrompts() {
             md += heading + '\n\n';
             if (char.irk) md += `**Race:** ${char.irk}\n\n`;
 
-            // ── Star prompts in order: 1★, 2★, 3★, Fusion, Extra ──
-            const starOrder = ['1','2','3','FÜZYON','FUSION','EK'];
+            // ── Prompts in order: Character, Fusion, Extra ──
+            const starOrder = ['KARAKTER','FÜZYON','FUSION','EK'];
             let addedPromptsForChar = false;
             starOrder.forEach(star => {
                 const p = charPrompts[star];
@@ -2299,7 +2533,7 @@ async function renderBulkTitleList() {
             return;
         }
         prompts.sort((a, b) => a.charName.localeCompare(b.charName, 'tr'));
-        const starLabels = {'1':'1 ★','2':'2 ★','3':'3 ★','FÜZYON':'FUSION','EK':'EK'};
+        const starLabels = {'KARAKTER':'KARAKTER','FÜZYON':'FUSION','EK':'EK'};
         list.innerHTML = '';
         prompts.forEach(p => {
             const el = document.createElement('label');
@@ -2329,9 +2563,9 @@ function updateBulkSelectedCount() {
     if (el) el.textContent = checked > 0 ? `${checked} / ${total} selected` : '';
 }
 async function deleteBulkTitles() {
-    if (!firebase.auth().currentUser) { alert("Please sign in first."); return; }
+    if (!firebase.auth().currentUser) { showAppToast("Please sign in first.", 'error'); return; }
     const checked = [...document.querySelectorAll('.bulk-title-check:checked')];
-    if (!checked.length) { alert("No titles selected."); return; }
+    if (!checked.length) { showAppToast("No titles selected.", 'error'); return; }
     if (!confirm(`Clear titles from ${checked.length} prompt(s)?`)) return;
     const statusEl = document.getElementById('bulk-title-status');
     statusEl.textContent = 'Deleting…';
@@ -2366,9 +2600,19 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ─── DOMContentLoaded ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     setupImageInputTogglers();
+    setupDropZones();
+    initFocusSliders();
     setupPromptCharCounters();
     setupIdRenameWarning();
     setupDuplicateNameWarning();
+
+    // Escape closes the topmost open modal / enlarged image
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (!dom.enlargedImageOverlay.classList.contains('hidden')) { closeEnlargedImage(); return; }
+        const open = [...document.querySelectorAll('.modal-backdrop.visible')].pop();
+        if (open) open.click(); // backdrop click handlers run the proper close functions
+    });
     dom.loginSubmitBtn.addEventListener('click', async () => {
         const email=dom.adminEmailInput.value, pw=dom.adminPasswordInput.value;
         dom.loginStatus.textContent='';
@@ -2380,12 +2624,16 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.itemTypeSelect.addEventListener('change', toggleFormFields);
     dom.addEditForm.addEventListener('submit', handleFormSubmit);
     dom.cancelButton.addEventListener('click', () => { resetForm(); dom.addEditFormContainer.classList.add('hidden'); dom.toggleFormText.textContent='Add New'; dom.toggleFormIcon.textContent='add'; });
-    dom.searchInput.addEventListener('input', renderAdminPanel);
+    let searchTimer;
+    dom.searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(renderAdminPanel, 160);
+    });
     dom.viewFilter.addEventListener('change', e => {
         viewState.filter = e.target.value;
         renderAdminPanel();
         // After showing report modal, reset back to 'all'
-        if (e.target.value !== 'all' && e.target.value !== 'available') {
+        if (e.target.value !== 'all') {
             setTimeout(() => { dom.viewFilter.value = 'all'; viewState.filter = 'all'; }, 100);
         }
     });
@@ -2394,7 +2642,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hidden = dom.addEditFormContainer.classList.toggle('hidden');
         dom.toggleFormText.textContent = hidden?'Add New':'Close Form';
         dom.toggleFormIcon.textContent = hidden?'add':'close';
-        if (!hidden) resetForm();
+        if (!hidden) { resetForm(); initFocusSliders(); }
     });
     dom.selectorSearchInput.addEventListener('input', () => renderCharacterSelector(dom.selectorSearchInput.value));
 
@@ -2460,13 +2708,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const all = [...(window.characters||[]), ...(window.dismissed||[])];
 
         all.forEach(c => {
-            if (c.imageUrl) urls.add(c.imageUrl);
-            if (c.isFusion && c.previewUrl) urls.add(c.previewUrl);
+            if (c.imageUrl && !c.isFusion) urls.add(c.imageUrl);
+            if (c.isFusion) {
+                if (c.previewUrl) urls.add(c.previewUrl);
+            }
             const auData = c.auData || {};
             Object.values(auData).forEach(entry => {
-                if (entry.starImageUrl)   urls.add(entry.starImageUrl);
-                if (entry.star3ImageUrl)  urls.add(entry.star3ImageUrl);
-                if (entry.fusionImageUrl) urls.add(entry.fusionImageUrl);
+                if (entry.imageUrl) urls.add(entry.imageUrl);
             });
         });
 

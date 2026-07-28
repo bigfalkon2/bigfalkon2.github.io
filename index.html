@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Character Gallery</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#00000000"/>
+    <meta name="theme-color" content="#131318"/>
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Karakterler">
@@ -14,9 +14,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(r => console.log('SW registered:', r.scope))
-                    .catch(e => console.log('SW failed:', e));
+                navigator.serviceWorker.register('./service-worker.js').catch(() => {});
             });
         }
     </script>
@@ -57,12 +55,13 @@
             --outline-var: #48454e;
         }
         body.modal-open { overflow: hidden; }
+        /* Guard: keep raw ligature names from blowing up layout before the icon font loads */
+        .material-symbols-outlined { display: inline-block; width: 1em; overflow: hidden; }
         body {
             font-family: 'Manrope', sans-serif;
             background-color: var(--bg);
             color: var(--on-bg);
             overflow-x: hidden;
-            transition: --primary 0.4s ease;
             /* Yanlara ve alta güvenli boşluk */
             padding-bottom: env(safe-area-inset-bottom);
             padding-left: env(safe-area-inset-left);
@@ -117,8 +116,6 @@
         .chip:hover { background-color: rgba(255,255,255,0.08); }
         .chip.selected { background-color: var(--primary); color: var(--on-primary); border-color: var(--primary); font-weight: 700; }
         .chip.dismissed-selected { background-color: var(--dismissed); color: var(--on-dismissed); border-color: var(--dismissed); font-weight: 700; }
-        .chip.au-selected { background-color: var(--au); color: #0a2e22; border-color: var(--au); font-weight: 700; }
-
         /* AU mode chip in filter */
         .au-mode-btn.active { background-color: var(--au); color: #0a2e22; border-color: var(--au); }
         .chip.au-selected { background-color: var(--au-container); color: var(--on-au-container); border-color: var(--au); font-weight: 700; }
@@ -277,7 +274,7 @@
         /* Modal AU icon buttons in header */
         .modal-au-btn {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 40px; height: 40px; border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             border: 1px solid rgba(var(--au-rgb), 0.5);
             background: rgba(var(--au-rgb), 0.08);
             color: var(--au); cursor: pointer;
@@ -285,7 +282,21 @@
         }
         .modal-au-btn:hover { background: var(--au); color: #0a2e22; }
         .modal-au-btn.active-au { background: var(--au); color: #0a2e22; box-shadow: 0 0 0 2px var(--au); }
-        .modal-au-btn .material-symbols-outlined { font-size: 20px; }
+        .modal-au-btn .material-symbols-outlined { font-size: 18px; }
+
+        /* Grid status states (loading / error / empty) */
+        .grid-status {
+            grid-column: 1 / -1;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            gap: 14px; padding: 70px 20px; color: var(--on-surface-var);
+        }
+        .grid-status .material-symbols-outlined { font-size: 44px; opacity: .8; }
+        .m3-spinner {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 4px solid var(--outline-var); border-top-color: var(--primary);
+            animation: m3spin 0.9s linear infinite;
+        }
+        @keyframes m3spin { to { transform: rotate(360deg); } }
 
         /* AU switch btn (old bottom row — keep small variant) */
         .au-switch-btn {
@@ -377,7 +388,8 @@
                 </button>
                 <div id="filter-menu" class="hidden absolute top-full left-0 mt-2 w-52 rounded-xl shadow-xl p-2 z-50" style="background-color: var(--surface-high); border: 1px solid var(--outline-var); max-height: 80vh; overflow-y: auto;">
                     <button class="menu-item" data-filter="all"><div><span class="material-symbols-outlined">apps</span><span>All</span></div><span class="check-icon material-symbols-outlined">check</span></button>
-                    <button class="menu-item" data-filter="fusion"><div><span class="material-symbols-outlined text-fuchsia-400">auto_awesome</span><span>Fusion</span></div><span class="check-icon material-symbols-outlined">check</span></button>
+                    <button class="menu-item" data-filter="character"><div><span class="material-symbols-outlined text-amber-400">person</span><span>Characters</span></div><span class="check-icon material-symbols-outlined">check</span></button>
+                    <button class="menu-item" data-filter="fusion"><div><span class="material-symbols-outlined text-fuchsia-400">merge_type</span><span>Fusions</span></div><span class="check-icon material-symbols-outlined">check</span></button>
                     <button class="menu-item" id="dismissed-filter-btn" data-filter="dismissed"><div><span class="material-symbols-outlined">badge</span><span>Retired</span></div><span class="check-icon material-symbols-outlined">check</span></button>
                     <hr class="menu-divider">
                     <p class="px-3 py-1 text-xs font-bold uppercase tracking-wider" style="color: var(--on-surface-var);">Sort</p>
@@ -428,9 +440,9 @@
 </div>
 
 <!-- CHARACTER MODAL -->
-<div id="character-modal" class="fixed inset-0 m3-backdrop hidden items-center justify-center p-2" onclick="closeCharacterModal()">
+<div id="character-modal" class="fixed inset-0 m3-backdrop hidden items-center justify-center p-2" role="dialog" aria-modal="true" aria-labelledby="modal-char-name" onclick="closeCharacterModal()">
     <div class="m3-dialog" id="character-modal-content" onclick="event.stopPropagation()">
-        <div class="absolute top-3 right-3 z-10 flex items-center gap-1" id="char-modal-header-btns">
+        <div class="absolute top-3 right-3 z-10 flex flex-wrap items-center justify-end gap-1" style="max-width: calc(100% - 96px);" id="char-modal-header-btns">
             <!-- AU icon buttons injected here dynamically -->
             <button class="icon-btn" onclick="closeCharacterModal()"><span class="material-symbols-outlined">close</span></button>
         </div>
@@ -453,9 +465,9 @@
 </div>
 
 <!-- FUSION MODAL -->
-<div id="fusion-modal" class="fixed inset-0 m3-backdrop hidden items-center justify-center p-2" onclick="closeFusionModal()">
+<div id="fusion-modal" class="fixed inset-0 m3-backdrop hidden items-center justify-center p-2" role="dialog" aria-modal="true" aria-labelledby="modal-fusion-name" onclick="closeFusionModal()">
     <div class="m3-dialog fusion-modal-bg" id="fusion-modal-content" onclick="event.stopPropagation()">
-        <div class="absolute top-3 right-3 z-10 flex items-center gap-1" id="fusion-modal-header-btns">
+        <div class="absolute top-3 right-3 z-10 flex flex-wrap items-center justify-end gap-1" style="max-width: calc(100% - 96px);" id="fusion-modal-header-btns">
             <!-- AU icon buttons injected here dynamically -->
             <button class="icon-btn" onclick="closeFusionModal()"><span class="material-symbols-outlined">close</span></button>
         </div>
@@ -491,7 +503,7 @@
 </div>
 
 <!-- SEARCH MODAL -->
-<div id="search-modal" class="fixed inset-0 m3-backdrop hidden items-center justify-center p-2" onclick="closeSearchModal()">
+<div id="search-modal" class="fixed inset-0 m3-backdrop hidden items-center justify-center p-2" role="dialog" aria-modal="true" aria-label="Character Search" onclick="closeSearchModal()">
     <div class="m3-dialog" id="search-modal-content" onclick="event.stopPropagation()">
         <button class="icon-btn absolute top-4 right-4 z-10" onclick="closeSearchModal()"><span class="material-symbols-outlined">close</span></button>
         <header class="p-4 flex-shrink-0"><h2 class="text-3xl font-bold">Character Search</h2></header>
@@ -521,12 +533,12 @@
 
 <script>
 const firebaseConfig = {
-    apiKey: "AIzaSyADZZj-DKnKWEmlrAVyuphkIUJiC8yf2DM",
-  authDomain: "krktrvrn.firebaseapp.com",
-  projectId: "krktrvrn",
-  storageBucket: "krktrvrn.firebasestorage.app",
-  messagingSenderId: "181337949458",
-  appId: "1:181337949458:web:739e0d2e61cbb1c22f1fcb"
+  apiKey: "AIzaSyB9k0hRVz_by2Jl3BsH2NbnwiHX-HKCwNs",
+  authDomain: "karaktergalerisiv2.firebaseapp.com",
+  projectId: "karaktergalerisiv2",
+  storageBucket: "karaktergalerisiv2.firebasestorage.app",
+  messagingSenderId: "530517152354",
+  appId: "1:530517152354:web:af0f4efedba4597554f73b"
 };
 firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
@@ -537,7 +549,7 @@ auth.onAuthStateChanged(user => {
     if (!user && state.unlockedAuIds.size > 0) {
         // Logged out → re-lock hidden AUs (only if something was unlocked)
         state.unlockedAuIds.clear();
-        if (alternativeUniverses.length) { buildAuDropdown(); renderCharacters(); }
+        if (dom.characterGrid && alternativeUniverses.length) { buildAuDropdown(); renderCharacters(); }
     }
 });
 
@@ -566,40 +578,25 @@ const sizeProfiles = [
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const getStarEmojis = (isFusion, isDismissed) => {
+const getCardBadge = (isFusion, isDismissed) => {
     if (isDismissed) {
         return `<div class="flex dismissed-stars"><span class="material-symbols-outlined text-gray-400" style="font-variation-settings:'FILL' 1;">badge</span></div>`;
     }
-    const color = isFusion ? 'text-fuchsia-400' : 'text-amber-400';
-    const icon = `<span class="material-symbols-outlined ${color}" style="font-variation-settings:'FILL' 1;">star</span>`;
-    return `<div class="flex ${isFusion ? 'fusion-stars' : ''}">${icon}</div>`;
-};
-
-const getCharacterImageUrl = (charId, useAu = false) => {
-    const char = characters.find(c => c.id === charId && !c.isFusion)
-               || dismissedCharacters.find(c => c.id === charId && !c.isFusion);
-    if (!char) return '';
-    if (useAu && state.activeAuId) {
-        const auImg = char.auData?.[state.activeAuId]?.starImageUrl;
-        if (auImg) return auImg;
+    if (isFusion) {
+        return `<div class="flex fusion-stars items-center gap-1"><span class="material-symbols-outlined text-fuchsia-400" style="font-size:16px;">merge_type</span><span class="text-sm font-semibold" style="color:var(--fusion);">Fusion</span></div>`;
     }
-    return char.imageUrl || '';
+    return '';
 };
 
+/** Returns the AU image if active AU has one, else original */
 const resolveCardImage = (char) => {
-    if (!state.activeAuId) return char.imageUrl || '';
+    if (!state.activeAuId) return char.displayImageUrl || char.imageUrl || '';
     const au = char.auData?.[state.activeAuId];
-    if (!au) return char.imageUrl || '';
-    if (char.isFusion) return au.fusionImageUrl || char.previewUrl || char.imageUrl || '';
-    return au.starImageUrl || char.imageUrl || '';
+    return au?.imageUrl || char.displayImageUrl || char.imageUrl || '';
 };
 
-const hasAuEntry = (char, auId) => {
-    if (!char.auData) return false;
-    const au = char.auData[auId];
-    if (!au) return false;
-    return !!(char.isFusion ? au.fusionImageUrl : (au.starImageUrl || au.star3ImageUrl));
-};
+/** Check if a character/fusion has any entry in a given AU */
+const hasAuEntry = (char, auId) => !!char.auData?.[auId]?.imageUrl;
 
 /** Check if an AU is accessible (not locked, or user has unlocked it) */
 const isAuReachable = (au) => {
@@ -613,21 +610,6 @@ const getReachableAus = () => alternativeUniverses.filter(isAuReachable);
 /** Check if char has entry in at least one reachable AU */
 const hasReachableAuEntry = (char) => getReachableAus().some(au => hasAuEntry(char, au.id));
 
-// ─── Image Observer (lazy GIF swap) ──────────────────────────────────────────
-let observer;
-function setupImageObserver() {
-    observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            const img = entry.target;
-            img.src = entry.isIntersecting ? img.dataset.gifSrc : img.dataset.previewSrc;
-        });
-    }, { threshold: 0.75 });
-}
-function observeImages() {
-    if (observer) observer.disconnect();
-    document.querySelectorAll('img[data-gif-src]').forEach(img => observer.observe(img));
-}
-
 // ─── Render ───────────────────────────────────────────────────────────────────
 let renderTimer = null;
 function renderCharacters() {
@@ -636,10 +618,7 @@ function renderCharacters() {
     renderTimer = setTimeout(_doRender, 180);
 }
 
-function _doRender() {
-    dom.characterGrid.innerHTML = '';
-    dom.characterGrid.classList.remove('fade-out');
-
+function applyGridColumns() {
     const cardW = parseInt(sizeProfiles[state.imageSizeIndex].minCardWidth, 10);
     if (state.isFitToScreenMode) {
         const gap = 24;
@@ -649,6 +628,12 @@ function _doRender() {
     } else {
         dom.characterGrid.style.gridTemplateColumns = `repeat(auto-fit, minmax(${sizeProfiles[state.imageSizeIndex].minCardWidth}, 1fr))`;
     }
+}
+
+function _doRender() {
+    dom.characterGrid.innerHTML = '';
+    dom.characterGrid.classList.remove('fade-out');
+    applyGridColumns();
 
     const visibleDismissed = dismissedCharacters.filter(c => c.type !== 'easterEgg');
 
@@ -661,25 +646,25 @@ function _doRender() {
     let items = [];
     const activeChars = state.galleryMode === 'dismissed' ? visibleDismissed : characters;
 
+    const toItem = (char) => char.isFusion
+        ? { ...char, displayImageUrl: char.previewUrl }
+        : { ...char, displayImageUrl: char.imageUrl };
+
     if (state.galleryMode === 'fusion') {
-        items = activeChars.filter(c => c.isFusion)
-            .map(c => ({ ...c, displayStar: 1, displayImageUrl: c.previewUrl || c.imageUrl }))
-            .sort(sortFn);
+        items = activeChars.filter(c => c.isFusion).sort(sortFn).map(toItem);
+    } else if (state.galleryMode === 'character') {
+        items = activeChars.filter(c => !c.isFusion).sort(sortFn).map(toItem);
     } else if (state.galleryMode === 'all' || state.galleryMode === 'dismissed') {
-        activeChars.filter(c => !c.isFusion).sort(sortFn).forEach(char => {
-            items.push({ ...char, displayStar: 1, displayImageUrl: char.imageUrl });
-        });
-        activeChars.filter(c => c.isFusion).sort(sortFn).forEach(char => {
-            items.push({ ...char, displayStar: 1, displayImageUrl: char.previewUrl || char.imageUrl });
-        });
+        items = [
+            ...activeChars.filter(c => !c.isFusion).sort(sortFn).map(toItem),
+            ...activeChars.filter(c => c.isFusion).sort(sortFn).map(toItem),
+        ];
     } else if (state.galleryMode === 'reachable-au') {
-        characters.filter(c => !c.isFusion).sort(sortFn).forEach(char => {
-            items.push({ ...char, displayStar: 1, displayImageUrl: char.imageUrl });
-        });
-        characters.filter(c => c.isFusion).sort(sortFn).forEach(char => {
-            items.push({ ...char, displayStar: 1, displayImageUrl: char.previewUrl || char.imageUrl });
-        });
-        items = items.filter(item => hasReachableAuEntry(item));
+        // Show all items that have at least one reachable AU entry
+        items = [
+            ...characters.filter(c => !c.isFusion).sort(sortFn).map(toItem),
+            ...characters.filter(c => c.isFusion).sort(sortFn).map(toItem),
+        ].filter(item => hasReachableAuEntry(item));
     }
 
     // Race filter
@@ -687,24 +672,21 @@ function _doRender() {
         items = items.filter(item => item.irk === state.raceFilter);
     }
 
-    // AU Only mode: filter to entries with AU data, show only their AU images (3★ for chars, fusion for fusions)
+    // AU Only mode: filter to entries with AU data, show only their AU images
     if (state.activeAuId) {
-        items = items.filter(item => hasAuEntry(item, state.activeAuId));
-        const auOnlyItems = [];
-        const seen = new Set();
-        items.forEach(item => {
-            if (item.isFusion) {
-                if (!seen.has(item.id)) {
-                    seen.add(item.id);
-                    const auImg = item.auData?.[state.activeAuId]?.fusionImageUrl;
-                    auOnlyItems.push({ ...item, displayStar: 4, displayImageUrl: auImg || item.previewUrl || item.imageUrl });
-                }
-            } else {
-                const auImg = item.auData?.[state.activeAuId]?.starImageUrl || item.auData?.[state.activeAuId]?.star3ImageUrl;
-                auOnlyItems.push({ ...item, displayImageUrl: auImg || item.displayImageUrl });
-            }
+        items = items.filter(item => hasAuEntry(item, state.activeAuId)).map(item => {
+            const auImg = item.auData?.[state.activeAuId]?.imageUrl;
+            return { ...item, displayImageUrl: auImg || item.displayImageUrl };
         });
-        items = auOnlyItems;
+    }
+
+    if (!items.length) {
+        dom.characterGrid.innerHTML = `
+            <div class="grid-status">
+                <span class="material-symbols-outlined">search_off</span>
+                <p class="font-semibold">No characters match this filter.</p>
+            </div>`;
+        return;
     }
 
     const frag = document.createDocumentFragment();
@@ -715,7 +697,6 @@ function _doRender() {
     dom.characterGrid.appendChild(frag);
 
     addInteractiveEffects();
-    observeImages();
 }
 
 function _buildCard(char, index) {
@@ -733,14 +714,14 @@ function _buildCard(char, index) {
 
     card.className = cls;
     card.dataset.id = char.id;
-    card.style.animationDelay = `${index * 35}ms`;
+    card.style.animationDelay = `${Math.min(index, 20) * 35}ms`;
 
     if (isFusion)         card.onclick = () => openFusionModal(char.id);
     else if (isDismissed) card.onclick = () => openCharacterModal(char.id, true);
     else                  card.onclick = () => openCharacterModal(char.id, false);
 
     const nameClass = (isFusion || isDismissed) ? 'font-fantastical' : '';
-    const stars = getStarEmojis(isFusion, isDismissed);
+    const badge = getCardBadge(isFusion, isDismissed);
 
     // AU badge
     let auBadgeHtml = '';
@@ -759,21 +740,27 @@ function _buildCard(char, index) {
     }
 
     const resolvedImgUrl = resolveCardImage(char);
-    let imageHtml;
-    if (isFusion && char.previewUrl) {
-        const auFusionImg = state.activeAuId ? char.auData?.[state.activeAuId]?.fusionImageUrl : null;
-        const previewSrc = auFusionImg || char.previewUrl;
-        imageHtml = `<img src="${previewSrc}" alt="${char.name}" class="character-card-image" loading="lazy">`;
+    // Pick imagePosition for the image actually being displayed.
+    // When an AU image replaces the original, use the AU entry's own position
+    // instead of the original character's crop.
+    const activeAuEntry = state.activeAuId ? char.auData?.[state.activeAuId] : null;
+    let displayImagePosition;
+    if (activeAuEntry?.imageUrl) {
+        displayImagePosition = activeAuEntry.imagePosition;
+    } else if (isFusion) {
+        displayImagePosition = char.previewPosition;
     } else {
-        imageHtml = `<img src="${resolvedImgUrl}" alt="${char.name}" class="character-card-image" loading="lazy">`;
+        displayImagePosition = char.imagePosition;
     }
+    const focusStyle = displayImagePosition ? ` style="object-position:${displayImagePosition}"` : '';
+    const imageHtml = `<img src="${resolvedImgUrl}" alt="${char.name}" class="character-card-image" loading="lazy"${focusStyle}>`;
 
     card.innerHTML = `
         <div class="character-card-image-wrapper">${imageHtml}</div>
         ${auBadgeHtml}
         <div class="card-info">
             <h3 class="character-name truncate ${nameClass}">${char.name}</h3>
-            <div class="star-row">${stars}</div>
+            ${badge ? `<div class="star-row">${badge}</div>` : ''}
         </div>
     `;
     return card;
@@ -1135,16 +1122,15 @@ function openCharacterModal(charId, isDismissed = false) {
     m.evolutions.innerHTML = '';
 
     const isAuOnlyMode = !!state.activeAuId;
-    const reachableAusWithEntry = getReachableAus().filter(au =>
-        char.auData?.[au.id]?.starImageUrl || char.auData?.[au.id]?.star3ImageUrl);
+    const reachableAusWithEntry = getReachableAus().filter(au => char.auData?.[au.id]?.imageUrl);
 
     if (isAuOnlyMode) {
         // AU Only mode: show AU image + original side by side
-        const auDef   = alternativeUniverses.find(a => a.id === state.activeAuId);
+        const auDef  = alternativeUniverses.find(a => a.id === state.activeAuId);
         const auEntry = char.auData?.[state.activeAuId];
         const origImg = char.imageUrl;
-        const w       = sizeProfiles[state.imageSizeIndex].minCardWidth;
-        const color   = auDef?.color || '#64dcb4';
+        const w = sizeProfiles[state.imageSizeIndex].minCardWidth;
+        const color = auDef?.color || '#64dcb4';
 
         const makeCard = (imgSrc, labelHtml, cardColor) => {
             const div = document.createElement('div');
@@ -1159,48 +1145,49 @@ function openCharacterModal(charId, isDismissed = false) {
             return div;
         };
 
-        const auImg = auEntry?.starImageUrl || auEntry?.star3ImageUrl;
-        if (auImg) {
-            m.evolutions.appendChild(makeCard(auImg,
+        if (auEntry?.imageUrl) {
+            m.evolutions.appendChild(makeCard(auEntry.imageUrl,
                 `<span class="material-symbols-outlined" style="font-size:15px;">${auDef?.icon||'auto_fix_high'}</span>${auDef?.name||'AU'} Version`,
                 color));
         }
         m.evolutions.appendChild(makeCard(origImg,
-            `<span class="material-symbols-outlined" style="font-size:15px;">star</span>Orijinal`, null));
+            `<span class="material-symbols-outlined" style="font-size:15px;">star</span>Original`, null));
 
         document.getElementById('char-modal-header-btns').querySelectorAll('.modal-au-btn').forEach(b => b.remove());
 
     } else {
-        // Normal mode: single image
+        // Normal mode: show the character's single image
         const div = document.createElement('div');
-        div.className = 'flex flex-col items-center p-3 rounded-2xl';
+        div.className = 'flex flex-col items-center p-3 rounded-2xl cursor-pointer transition-colors hover:bg-[var(--surface-high)]';
         div.style.backgroundColor = 'var(--surface)';
         const wrap = document.createElement('div');
         wrap.style.width = sizeProfiles[state.imageSizeIndex].minCardWidth;
         wrap.innerHTML = `<img src="${char.imageUrl}" alt="${char.name}" class="w-full h-auto object-contain rounded-xl mb-2 cursor-zoom-in" onclick="enlargeImage(this.src)">`;
-        const p = document.createElement('p');
-        p.className = 'text-lg font-medium';
-        p.innerHTML = getStarEmojis(false, isDismissed);
-        div.appendChild(wrap); div.appendChild(p);
+        div.appendChild(wrap);
+        if (isDismissed) {
+            const p = document.createElement('p');
+            p.className = 'text-lg font-medium';
+            p.innerHTML = getCardBadge(false, true);
+            div.appendChild(p);
+        }
         m.evolutions.appendChild(div);
 
         // AU cards (hidden by default, toggled via header buttons)
         reachableAusWithEntry.forEach(au => {
             const auEntry = char.auData[au.id];
-            const auImg   = auEntry?.starImageUrl || auEntry?.star3ImageUrl;
-            const div2 = document.createElement('div');
-            div2.className = 'flex flex-col items-center p-3 rounded-2xl au-evo-card modal-au-card';
-            div2.dataset.auId = au.id;
-            div2.style.cssText = `border-color:${au.color||'#64dcb4'}88; display:none;`;
-            const wrap2 = document.createElement('div');
-            wrap2.style.width = sizeProfiles[state.imageSizeIndex].minCardWidth;
-            wrap2.innerHTML = `<img src="${auImg}" alt="${char.name} ${au.name}" class="w-full h-auto object-contain rounded-xl mb-2 cursor-zoom-in" onclick="enlargeImage(this.src)">`;
-            const p2 = document.createElement('p');
-            p2.className = 'text-sm font-bold flex items-center gap-1';
-            p2.style.color = au.color || 'var(--au)';
-            p2.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px;">${au.icon||'auto_fix_high'}</span>${au.name}`;
-            div2.appendChild(wrap2); div2.appendChild(p2);
-            m.evolutions.appendChild(div2);
+            const auDiv = document.createElement('div');
+            auDiv.className = 'flex flex-col items-center p-3 rounded-2xl au-evo-card modal-au-card';
+            auDiv.dataset.auId = au.id;
+            auDiv.style.cssText = `border-color:${au.color||'#64dcb4'}88; display:none;`;
+            const auWrap = document.createElement('div');
+            auWrap.style.width = sizeProfiles[state.imageSizeIndex].minCardWidth;
+            auWrap.innerHTML = `<img src="${auEntry.imageUrl}" alt="${char.name} ${au.name}" class="w-full h-auto object-contain rounded-xl mb-2 cursor-zoom-in" onclick="enlargeImage(this.src)">`;
+            const p = document.createElement('p');
+            p.className = 'text-sm font-bold flex items-center gap-1';
+            p.style.color = au.color || 'var(--au)';
+            p.innerHTML = `<span class="material-symbols-outlined" style="font-size:15px;">${au.icon||'auto_fix_high'}</span>${au.name}`;
+            auDiv.appendChild(auWrap); auDiv.appendChild(p);
+            m.evolutions.appendChild(auDiv);
         });
 
         _buildModalAuBtns('char-modal-header-btns', reachableAusWithEntry, '.modal-au-card');
@@ -1245,19 +1232,19 @@ function openFusionModal(fusionId) {
     document.querySelectorAll('.fusion-au-extra-card').forEach(el => el.remove());
 
     const isAuOnlyMode = !!state.activeAuId;
-    const reachableAusWithEntry = getReachableAus().filter(au => fusion.auData?.[au.id]?.fusionImageUrl);
+    const reachableAusWithEntry = getReachableAus().filter(au => fusion.auData?.[au.id]?.imageUrl);
 
     if (isAuOnlyMode) {
         // AU Only mode: AU image main + original as extra card
         const auDef  = alternativeUniverses.find(a => a.id === state.activeAuId);
-        const auImg  = fusion.auData?.[state.activeAuId]?.fusionImageUrl;
+        const auEntry = fusion.auData?.[state.activeAuId];
+        const auImg  = auEntry?.imageUrl;
         const color  = auDef?.color || '#64dcb4';
 
         m.img.src = auImg || fusion.previewUrl || fusion.imageUrl || '';
-        m.img.setAttribute('onclick', `enlargeImage('${m.img.src}')`);
         m.star.innerHTML = auDef
             ? `<span class="text-xs font-bold flex items-center gap-1" style="color:${color}"><span class="material-symbols-outlined" style="font-size:14px;">${auDef.icon||'auto_fix_high'}</span>${auDef.name} Version</span>`
-            : getStarEmojis(true, false);
+            : getCardBadge(true, false);
 
         // Original as extra card
         const origCard = document.createElement('div');
@@ -1277,25 +1264,19 @@ function openFusionModal(fusionId) {
     } else {
         // Normal mode
         m.img.src = fusion.previewUrl || fusion.imageUrl || '';
-        m.img.setAttribute('onclick', `enlargeImage('${fusion.previewUrl || fusion.imageUrl||''}')`);
-        m.star.innerHTML = getStarEmojis(true, false);
+        m.star.innerHTML = getCardBadge(true, false);
         m.left.container.style.display = '';
         m.right.container.style.display = '';
 
-        const getPartnerImage = (charId) => {
-            const c = characters.find(x => x.id === charId && !x.isFusion)
-                   || dismissedCharacters.find(x => x.id === charId && !x.isFusion);
-            return c ? (c.imageUrl || '') : '';
-        };
         const [p1, p2] = (fusion.fusionPartners || []).map(id =>
             characters.find(c => c.id === id) || dismissedCharacters.find(c => c.id === id));
         const setPartner = (side, pChar, irkElId) => {
             if (!pChar) return;
-            side.img.src = getPartnerImage(pChar.id);
+            side.img.src = pChar.imageUrl || '';
             side.container.style.width = `${parseInt(w) * 0.75}px`;
             side.name.textContent = pChar.name;
             side.container.dataset.characterId = pChar.id;
-            side.star.innerHTML = getStarEmojis(false, false);
+            side.star.innerHTML = '';
             _setIrk(irkElId, pChar.irk);
         };
         setPartner(m.left, p1, 'modal-fusion-left-irk');
@@ -1311,7 +1292,7 @@ function openFusionModal(fusionId) {
                 <p class="text-sm font-bold mb-2 flex items-center gap-1" style="color:${au.color||'var(--au)'}">
                     <span class="material-symbols-outlined" style="font-size:15px;">${au.icon||'auto_fix_high'}</span>${au.name}
                 </p>
-                <img src="${auEntry.fusionImageUrl}" alt="${fusion.name} ${au.name}" class="w-full h-auto object-contain rounded-xl cursor-zoom-in" onclick="enlargeImage(this.src)">
+                <img src="${auEntry.imageUrl}" alt="${fusion.name} ${au.name}" class="w-full h-auto object-contain rounded-xl cursor-zoom-in" onclick="enlargeImage(this.src)">
             `;
             m.imgWrap.insertAdjacentElement('afterend', auCard);
         });
@@ -1347,11 +1328,7 @@ function renderSearchResults() {
     const results = [];
     pool.forEach(char => {
         if (!char.name.toLowerCase().includes(term) && !char.id.toLowerCase().includes(term)) return;
-        if (char.isFusion) {
-            results.push({ ...char, displayStar: 1, displayImageUrl: char.previewUrl || char.imageUrl });
-        } else {
-            results.push({ ...char, displayStar: 1, displayImageUrl: char.imageUrl });
-        }
+        results.push({ ...char, displayImageUrl: char.isFusion ? (char.previewUrl || char.imageUrl) : char.imageUrl });
     });
 
     if (!results.length) { ph.textContent = `No results for "${dom.searchModal.input.value}".`; ph.classList.remove('hidden'); return; }
@@ -1362,15 +1339,18 @@ function renderSearchResults() {
 function _buildSearchCard(item) {
     const card = document.createElement('div');
     card.className = 'search-result-card';
-    const action = item.isFusion
-        ? `closeSearchModal(); setTimeout(()=>openFusionModal('${item.id}'),310);`
-        : `closeSearchModal(); setTimeout(()=>openCharacterModal('${item.id}',${!!item.isDismissed}),310);`;
-    card.setAttribute('onclick', action);
+    card.addEventListener('click', () => {
+        closeSearchModal();
+        setTimeout(() => {
+            if (item.isFusion) openFusionModal(item.id);
+            else openCharacterModal(item.id, !!item.isDismissed);
+        }, 310);
+    });
     const nc = (item.isFusion || item.isDismissed) ? 'font-fantastical' : '';
     card.innerHTML = `<img src="${item.displayImageUrl}" alt="${item.name}" class="w-24 h-24 object-cover rounded-md flex-shrink-0" loading="lazy">
         <div class="flex flex-col gap-1">
             <h4 class="text-lg font-bold ${nc}">${item.name}</h4>
-            <div>${getStarEmojis(item.isFusion, item.isDismissed)}</div>
+            ${getCardBadge(item.isFusion, item.isDismissed) ? `<div>${getCardBadge(item.isFusion, item.isDismissed)}</div>` : ''}
             <p class="text-xs font-mono" style="color:var(--on-surface-var);">ID: ${item.id}</p>
         </div>`;
     return card;
@@ -1410,19 +1390,19 @@ function updateModalNav(id, type) {
 
     if (mode === 'fusion') {
         nav = pool.filter(c => c.isFusion).sort(sortFn);
-    } else if (mode === 'all' || mode === 'dismissed') {
-        nav = [
-            ...pool.filter(c => !c.isFusion).sort(sortFn),
-            ...pool.filter(c => c.isFusion).sort(sortFn),
-        ];
+    } else if (mode === 'character') {
+        nav = pool.filter(c => !c.isFusion).sort(sortFn);
     } else if (mode === 'reachable-au') {
         nav = [
             ...pool.filter(c => !c.isFusion && hasReachableAuEntry(c)).sort(sortFn),
             ...pool.filter(c => c.isFusion && hasReachableAuEntry(c)).sort(sortFn),
         ];
     } else {
-        // fallback: all
-        nav = [...pool.filter(c => !c.isFusion).sort(sortFn), ...pool.filter(c => c.isFusion).sort(sortFn)];
+        // 'all', 'dismissed' and fallback
+        nav = [
+            ...pool.filter(c => !c.isFusion).sort(sortFn),
+            ...pool.filter(c => c.isFusion).sort(sortFn),
+        ];
     }
 
     // Filter by active AU
@@ -1485,7 +1465,12 @@ function addInteractiveEffects() {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 async function initApp() {
-    setupImageObserver();
+    const gridEl = document.getElementById('character-grid');
+    gridEl.innerHTML = `
+        <div class="grid-status">
+            <div class="m3-spinner"></div>
+            <p class="font-semibold">Loading characters…</p>
+        </div>`;
     try {
         const [charsSnap, dismissedSnap, auSnap] = await Promise.all([
             db.collection('characters').get(),
@@ -1573,7 +1558,19 @@ async function initApp() {
         auToggleBtn.addEventListener('click', e => { e.stopPropagation(); auMenu.classList.toggle('hidden'); dom.filterMenu.classList.add('hidden'); });
 
         document.getElementById('open-search-btn').addEventListener('click', openSearchModal);
-        dom.searchModal.input.addEventListener('input', renderSearchResults);
+        let searchDebounce;
+        dom.searchModal.input.addEventListener('input', () => {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(renderSearchResults, 150);
+        });
+        dom.fusionModal.img.addEventListener('click', function () { enlargeImage(this.src); });
+        window.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            if (!dom.enlargedOverlay.classList.contains('hidden')) { closeEnlargedImage(); return; }
+            if (!dom.charModal.el.classList.contains('hidden'))   { closeCharacterModal(); return; }
+            if (!dom.fusionModal.el.classList.contains('hidden')) { closeFusionModal(); return; }
+            if (!dom.searchModal.el.classList.contains('hidden')) { closeSearchModal(); }
+        });
         window.addEventListener('click', e => {
             if (!dom.filterMenu.classList.contains('hidden') && !e.target.closest('#filter-container')) {
                 dom.filterMenu.classList.add('hidden');
@@ -1582,9 +1579,10 @@ async function initApp() {
                 auMenu.classList.add('hidden');
             }
         });
-        dom.zoomInBtn.addEventListener('click', () => { if (state.imageSizeIndex < sizeProfiles.length - 1) { state.imageSizeIndex++; updateUI(); renderCharacters(); }});
-        dom.zoomOutBtn.addEventListener('click', () => { if (state.imageSizeIndex > 0) { state.imageSizeIndex--; updateUI(); renderCharacters(); }});
-        dom.fitScreenBtn.addEventListener('click', () => { state.isFitToScreenMode = !state.isFitToScreenMode; updateUI(); renderCharacters(); });
+        // Zoom/fit only change grid columns — no need to rebuild every card
+        dom.zoomInBtn.addEventListener('click', () => { if (state.imageSizeIndex < sizeProfiles.length - 1) { state.imageSizeIndex++; updateUI(); applyGridColumns(); }});
+        dom.zoomOutBtn.addEventListener('click', () => { if (state.imageSizeIndex > 0) { state.imageSizeIndex--; updateUI(); applyGridColumns(); }});
+        dom.fitScreenBtn.addEventListener('click', () => { state.isFitToScreenMode = !state.isFitToScreenMode; updateUI(); applyGridColumns(); });
         document.getElementById('au-banner-exit').addEventListener('click', () => { state.activeAuId = null; _applyAuMode(); });
 
         buildAuDropdown();
@@ -1594,7 +1592,15 @@ async function initApp() {
         renderCharacters();
     } catch (err) {
         console.error("App init error:", err);
-        alert("Failed to load. Please try again later.");
+        gridEl.innerHTML = `
+            <div class="grid-status">
+                <span class="material-symbols-outlined" style="color:#ff8a80;">cloud_off</span>
+                <p class="font-semibold">Failed to load characters.</p>
+                <p class="text-sm" style="opacity:.75;">Check your connection and try again.</p>
+                <button class="chip" onclick="location.reload()" style="margin-top:4px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:-4px;">refresh</span> Retry
+                </button>
+            </div>`;
     }
 }
 
